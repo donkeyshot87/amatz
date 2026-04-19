@@ -25,3 +25,17 @@ export function canCompleteStage(role: UserRole, isStageOwner: boolean, stageNum
   if (can(role, FINANCE_ROLES)) return true
   return isStageOwner && canUpdateStage(role, stageNumber)
 }
+
+const STAGE_VIEW_MAP: Record<UserRole, number[]> = {
+  developer:          [1, 2, 3, 4, 5, 6, 7],
+  admin:              [1, 2, 3, 4, 5, 6, 7],
+  coordinator:        [1, 2, 3, 4, 5, 6, 7],
+  production:         [2, 4, 5],
+  production_manager: [2, 4, 5],
+  field_manager:      [3, 6, 7],
+  finance:            [1],
+}
+
+export function canViewStage(role: UserRole, stageNumber: number): boolean {
+  return STAGE_VIEW_MAP[role]?.includes(stageNumber) ?? false
+}
