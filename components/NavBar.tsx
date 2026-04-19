@@ -43,10 +43,10 @@ export async function NavBar() {
     <>
       <style>{`
         .nav-link {
-          font-size: 0.85rem;
-          font-weight: 500;
+          font-size: 1rem;
+          font-weight: 600;
           color: var(--text-secondary);
-          padding: 0.35rem 0.75rem;
+          padding: 0.45rem 1rem;
           border-radius: 6px;
           transition: color 0.15s, background 0.15s;
           text-decoration: none;
@@ -71,33 +71,20 @@ export async function NavBar() {
         <div style={{
           maxWidth: '1200px',
           margin: '0 auto',
-          padding: '0 1.5rem',
-          height: '56px',
+          padding: '0 2rem',
+          height: '72px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: '1rem',
         }}>
           {/* Logo */}
-          <Link href="/dashboard" className="nav-link" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, padding: 0, background: 'transparent' }}>
-            <div style={{
-              width: '28px',
-              height: '28px',
-              background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-bright) 100%)',
-              borderRadius: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '12px',
-              fontWeight: 900,
-              color: 'var(--text-inverse)',
-              letterSpacing: '-0.03em',
-              flexShrink: 0,
-            }}>א</div>
+          <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0, padding: 0, textDecoration: 'none' }}>
+            <img src="/logo-icon.png" alt="לוגו" style={{ height: '60px', width: '60px', objectFit: 'contain', display: 'block' }} />
             <span style={{
               fontFamily: 'var(--font-display)',
               fontWeight: 700,
-              fontSize: '1rem',
+              fontSize: '1.15rem',
               color: 'var(--text-primary)',
               letterSpacing: '-0.01em',
             }}>אמץ אלומיניום</span>
@@ -138,12 +125,12 @@ export async function NavBar() {
           </div>
 
           {/* User info + logout */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.2 }}>
+              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.2 }}>
                 {profile?.full_name}
               </span>
-              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: 1.2 }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.2 }}>
                 {ROLE_LABELS[role] ?? role}
               </span>
             </div>

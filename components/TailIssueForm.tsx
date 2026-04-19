@@ -35,8 +35,9 @@ export function TailIssueForm({ projectId, onCreated }: Props) {
   if (!open) {
     return (
       <button
+        className="btn-ghost"
         onClick={() => setOpen(true)}
-        className="text-sm text-red-600 hover:underline font-medium"
+        style={{ color: 'var(--status-issues)', fontSize: '0.8rem', padding: '0.3rem 0' }}
       >
         + פתח בעיית זנב
       </button>
@@ -44,28 +45,42 @@ export function TailIssueForm({ projectId, onCreated }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 bg-red-50 rounded-xl p-4">
-      <h4 className="font-medium text-red-800">בעיה חדשה</h4>
+    <form onSubmit={handleSubmit} style={{
+      background: 'var(--bg-raised)',
+      border: '1px solid var(--border-mid)',
+      borderRight: '3px solid var(--status-issues)',
+      borderRadius: 'var(--radius-md)',
+      padding: '1rem',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '0.75rem',
+    }}>
+      <p style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--status-issues)', margin: 0 }}>
+        בעיה חדשה
+      </p>
       <textarea
         required
         value={description}
         onChange={e => setDescription(e.target.value)}
         placeholder="תיאור הבעיה..."
         rows={3}
-        className="w-full border rounded-lg px-3 py-2 text-sm"
+        className="input-field"
+        style={{ resize: 'vertical' }}
       />
-      <div className="flex gap-2">
+      <div style={{ display: 'flex', gap: '0.5rem' }}>
         <button
           type="submit"
           disabled={loading}
-          className="bg-red-600 text-white rounded-lg px-4 py-1.5 text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+          className="btn-primary"
+          style={{ fontSize: '0.8rem', padding: '0.4rem 1rem' }}
         >
           {loading ? 'שומר...' : 'פתח בעיה'}
         </button>
         <button
           type="button"
+          className="btn-secondary"
           onClick={() => setOpen(false)}
-          className="border rounded-lg px-4 py-1.5 text-sm"
+          style={{ fontSize: '0.8rem', padding: '0.4rem 1rem' }}
         >
           ביטול
         </button>

@@ -19,9 +19,12 @@ export function StatusFilterBar({ selected }: { selected: string[] }) {
       ? selected.filter(s => s !== value)
       : [...selected, value]
 
-    const params = new URLSearchParams(searchParams.toString())
-    params.delete('s')
-    next.forEach(s => params.append('s', s))
+    const params = new URLSearchParams()
+    if (next.length === 0) {
+      params.append('s', '__none__')
+    } else {
+      next.forEach(s => params.append('s', s))
+    }
     router.push(`${pathname}?${params.toString()}`)
   }
 

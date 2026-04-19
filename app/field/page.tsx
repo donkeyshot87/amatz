@@ -14,7 +14,8 @@ interface Props {
 
 export default async function FieldPage({ searchParams }: Props) {
   const { s } = await searchParams
-  const selected: string[] = s ? (Array.isArray(s) ? s : [s]) : DEFAULT_STATUSES
+  const raw: string[] = s ? (Array.isArray(s) ? s : [s]) : DEFAULT_STATUSES
+  const selected: string[] = raw.includes('__none__') ? [] : raw
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

@@ -10,10 +10,10 @@ const STATUS_LABELS: Record<TailIssueStatus, string> = {
   resolved: 'נסגר',
 }
 
-const STATUS_COLORS: Record<TailIssueStatus, string> = {
-  open: 'bg-red-100 text-red-700',
-  in_progress: 'bg-orange-100 text-orange-700',
-  resolved: 'bg-green-100 text-green-700',
+const STATUS_STYLES: Record<TailIssueStatus, { badge: string; dot: string }> = {
+  open:        { badge: 'badge badge-issues',      dot: 'status-dot status-dot-issues' },
+  in_progress: { badge: 'badge badge-in-progress', dot: 'status-dot status-dot-active' },
+  resolved:    { badge: 'badge badge-done',         dot: 'status-dot status-dot-done' },
 }
 
 interface Props {
@@ -24,7 +24,9 @@ interface Props {
 export function TailIssueList({ issues, onUpdated }: Props) {
   const [loading, setLoading] = useState<string | null>(null)
 
-  if (issues.length === 0) return <p className="text-gray-400 text-sm">אין זנבות פתוחים</p>
+  if (issues.length === 0) {
+    return <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>אין זנבות פתוחים</p>
+  }
 
   async function updateStatus(issueId: string, status: TailIssueStatus) {
     setLoading(issueId)
@@ -35,30 +37,43 @@ export function TailIssueList({ issues, onUpdated }: Props) {
   }
 
   return (
-    <ul className="space-y-3">
+    <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', listStyle: 'none', padding: 0, margin: 0 }}>
       {issues.map(issue => (
-        <li key={issue.id} className="bg-white border rounded-xl p-4">
-          <div className="flex items-start justify-between gap-3">
-            <p className="text-sm">{issue.description}</p>
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${STATUS_COLORS[issue.status]}`}>
+        <li key={issue.id} style={{
+          background: 'var(--bg-raised)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: 'var(--radius-md)',
+          padding: '0.75rem 1rem',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', flex: 1 }}>
+              <span className={STATUS_STYLES[issue.status].dot} style={{ marginTop: '5px' }} />
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-primary)', margin: 0, lineHeight: 1.5 }}>
+                {issue.description}
+              </p>
+            </div>
+            <span className={STATUS_STYLES[issue.status].badge} style={{ flexShrink: 0 }}>
               {STATUS_LABELS[issue.status]}
             </span>
           </div>
+
           {issue.status !== 'resolved' && (
-            <div className="flex gap-2 mt-3">
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.6rem', paddingRight: '15px' }}>
               {issue.status === 'open' && (
                 <button
+                  className="btn-secondary"
                   onClick={() => updateStatus(issue.id, 'in_progress')}
                   disabled={loading === issue.id}
-                  className="text-xs border rounded-lg px-3 py-1 hover:bg-gray-50"
+                  style={{ fontSize: '0.75rem', padding: '0.3rem 0.75rem' }}
                 >
                   בטיפול
                 </button>
               )}
               <button
+                className="btn-primary"
                 onClick={() => updateStatus(issue.id, 'resolved')}
                 disabled={loading === issue.id}
-                className="text-xs bg-green-600 text-white rounded-lg px-3 py-1 hover:bg-green-700"
+                style={{ fontSize: '0.75rem', padding: '0.3rem 0.75rem' }}
               >
                 סגור בעיה
               </button>
