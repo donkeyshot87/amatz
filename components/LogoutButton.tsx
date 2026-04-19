@@ -16,7 +16,8 @@ export function LogoutButton() {
   return (
     <button
       onClick={handleLogout}
-      className="text-gray-400 hover:text-red-600 text-xs transition-colors"
+      className="btn-ghost"
+      style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.3rem 0.6rem' }}
     >
       יציאה
     </button>

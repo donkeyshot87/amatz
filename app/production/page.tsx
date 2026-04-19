@@ -1,13 +1,24 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { formatProjectNumber, formatDate, STAGE_STATUS_LABELS } from '@/lib/formatters'
+import { formatProjectNumber, formatDate } from '@/lib/formatters'
+import { StatusFilterBar } from '@/components/StatusFilterBar'
+import { FieldStageCard } from '@/components/FieldStageCard'
+import { UserRole } from '@/lib/types'
 import Link from 'next/link'
 
 const PRODUCTION_ROLES = ['developer', 'admin', 'production', 'production_manager']
+const PRODUCTION_STAGES = [2, 4, 5]
+const DEFAULT_STATUSES = ['pending', 'in_progress']
 
-export default async function ProductionPage() {
+interface Props {
+  searchParams: Promise<{ s?: string | string[] }>
+}
+
+export default async function ProductionPage({ searchParams }: Props) {
+  const { s } = await searchParams
+  const selected: string[] = s ? (Array.isArray(s) ? s : [s]) : DEFAULT_STATUSES
+
   const supabase = await createClient()
-
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -20,56 +31,54 @@ export default async function ProductionPage() {
     .eq('status', 'active')
     .order('planned_delivery_date', { ascending: true })
 
-  const productionProjects = (projects ?? []).filter(p => {
-    const stages = (p as any).project_stages as any[]
-    return stages.some((s: any) =>
-      [4, 5].includes(s.stage_number) && ['pending', 'in_progress', 'blocked'].includes(s.status)
-    )
-  })
+  const productionProjects = (projects ?? [])
+    .map(p => {
+      const allStages = (p as any).project_stages as any[]
+      const relevantStages = allStages
+        .filter((s: any) => PRODUCTION_STAGES.includes(s.stage_number) && selected.includes(s.status))
+        .sort((a: any, b: any) => a.stage_number - b.stage_number)
+      return { ...p, relevantStages }
+    })
+    .filter(p => p.relevantStages.length > 0)
+
+  const projectIds = productionProjects.map(p => p.id)
+  const { data: attachments } = projectIds.length > 0
+    ? await supabase.from('attachments').select('*').in('project_id', projectIds)
+    : { data: [] }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="mb-4">
-        <Link href="/dashboard" className="text-blue-600 text-sm hover:underline">← לוח בקרה</Link>
-      </div>
-      <h1 className="text-2xl font-bold mb-6">ייצור</h1>
+    <div style={{ maxWidth: '960px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+      <Link href="/dashboard" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', marginBottom: '1.5rem' }}>
+        ← לוח בקרה
+      </Link>
+
+      <h1 style={{
+        fontFamily: 'var(--font-display)',
+        fontSize: '1.75rem',
+        fontWeight: 900,
+        color: 'var(--text-primary)',
+        margin: '0 0 1.5rem',
+        letterSpacing: '-0.02em',
+      }}>ייצור</h1>
+
+      <StatusFilterBar selected={selected} />
 
       {productionProjects.length === 0 ? (
-        <p className="text-gray-400 text-center py-12">אין פרויקטים בשלב ייצור</p>
+        <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-muted)' }}>
+          <p>אין פרויקטים להצגה</p>
+        </div>
       ) : (
-        <div className="space-y-4">
-          {productionProjects.map(project => {
-            const stages = (project as any).project_stages as any[]
-            const activeStage = stages
-              .filter((s: any) => [4, 5].includes(s.stage_number))
-              .sort((a: any, b: any) => a.stage_number - b.stage_number)[0]
-
-            return (
-              <div key={project.id} className="bg-white rounded-2xl shadow p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs text-gray-400 font-mono">{formatProjectNumber(project.project_number)}</p>
-                    <Link href={`/projects/${project.id}`} className="font-semibold text-blue-600 hover:underline">
-                      {project.name}
-                    </Link>
-                    <p className="text-sm text-gray-500">{project.client_name}</p>
-                  </div>
-                  {project.planned_delivery_date && (
-                    <p className="text-sm text-gray-400 flex-shrink-0">
-                      מסירה: {formatDate(project.planned_delivery_date)}
-                    </p>
-                  )}
-                </div>
-                {activeStage && (
-                  <div className="mt-3 bg-blue-50 rounded-xl p-3">
-                    <p className="text-sm font-medium">שלב {activeStage.stage_number}: {activeStage.stage_name}</p>
-                    <p className="text-xs text-gray-500">{STAGE_STATUS_LABELS[activeStage.status]}</p>
-                    {activeStage.notes && <p className="text-xs text-gray-500 mt-1">{activeStage.notes}</p>}
-                  </div>
-                )}
-              </div>
-            )
-          })}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {productionProjects.map(project => (
+            <FieldStageCard
+              key={project.id}
+              project={project}
+              stages={project.relevantStages}
+              attachments={(attachments ?? []).filter((a: any) => a.project_id === project.id)}
+              currentUserId={user.id}
+              currentUserRole={(profile?.role ?? 'production') as UserRole}
+            />
+          ))}
         </div>
       )}
     </div>

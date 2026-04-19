@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { canCompleteStage } from '@/lib/permissions'
 import { UserRole, StageStatus } from '@/lib/types'
+import { STAGE_STATUS_LABELS } from '@/lib/formatters'
 
 interface Props {
   stageId: string
@@ -23,6 +24,13 @@ const STATUS_OPTIONS: { value: StageStatus; label: string }[] = [
   { value: 'completed', label: 'הושלם' },
 ]
 
+const STATUS_BADGE: Record<string, string> = {
+  pending:     'badge badge-closed',
+  in_progress: 'badge badge-in-progress',
+  completed:   'badge badge-done',
+  blocked:     'badge badge-blocked',
+}
+
 export function StageUpdateButton({
   stageId, stageNumber, currentStatus, ownerId,
   currentUserId, currentUserRole, billingPct, onUpdated
@@ -32,19 +40,10 @@ export function StageUpdateButton({
 
   if (!canCompleteStage(currentUserRole, isOwner, stageNumber)) {
     return (
-      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-        currentStatus === 'completed' ? 'bg-green-100 text-green-700' :
-        currentStatus === 'in_progress' ? 'bg-blue-100 text-blue-700' :
-        currentStatus === 'blocked' ? 'bg-red-100 text-red-700' :
-        'bg-gray-100 text-gray-600'
-      }`}>
-        {STATUS_OPTIONS.find(o => o.value === currentStatus)?.label}
+      <span className={STATUS_BADGE[currentStatus] ?? 'badge badge-closed'}>
+        {STAGE_STATUS_LABELS[currentStatus]}
       </span>
     )
-  }
-
-  if (currentStatus === 'completed') {
-    return <span className="text-green-600 text-sm font-medium">✓ הושלם</span>
   }
 
   async function updateStatus(newStatus: StageStatus) {
@@ -70,7 +69,17 @@ export function StageUpdateButton({
       value={currentStatus}
       onChange={e => updateStatus(e.target.value as StageStatus)}
       disabled={loading}
-      className="border rounded-lg px-2 py-1 text-sm bg-white"
+      style={{
+        background: 'var(--bg-deep)',
+        border: '1px solid var(--border-mid)',
+        borderRadius: '6px',
+        color: 'var(--text-primary)',
+        fontSize: '0.78rem',
+        padding: '0.3rem 0.6rem',
+        cursor: 'pointer',
+        fontFamily: 'var(--font-body)',
+        outline: 'none',
+      }}
     >
       {STATUS_OPTIONS.map(opt => (
         <option key={opt.value} value={opt.value}>{opt.label}</option>

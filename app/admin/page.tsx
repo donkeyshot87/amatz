@@ -5,6 +5,12 @@ import { StageHistoryLog } from '@/components/StageHistoryLog'
 import { formatCurrency, formatProjectNumber, PROJECT_STATUS_LABELS } from '@/lib/formatters'
 import Link from 'next/link'
 
+const PROJECT_STATUS_BADGE: Record<string, string> = {
+  active: 'badge badge-active',
+  delivered_with_issues: 'badge badge-issues',
+  closed: 'badge badge-closed',
+}
+
 export default async function AdminPage() {
   const supabase = await createClient()
 
@@ -37,71 +43,103 @@ export default async function AdminPage() {
   const totalCollectedMonth = (doneAlerts ?? []).reduce((sum, a) => sum + Number(a.amount), 0)
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-10">
-      <div className="mb-4">
-        <Link href="/dashboard" className="text-blue-600 text-sm hover:underline">← לוח בקרה</Link>
-      </div>
-      <h1 className="text-2xl font-bold">ניהול</h1>
+    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+      <Link href="/dashboard" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', marginBottom: '1.5rem' }}>
+        ← לוח בקרה
+      </Link>
+
+      <h1 style={{
+        fontFamily: 'var(--font-display)',
+        fontSize: '1.75rem',
+        fontWeight: 900,
+        color: 'var(--text-primary)',
+        margin: '0 0 2rem',
+        letterSpacing: '-0.02em',
+      }}>ניהול</h1>
 
       {/* Monthly summary */}
-      <section>
-        <h2 className="text-lg font-semibold mb-4">סיכום חודשי</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white rounded-2xl shadow p-5">
-            <p className="text-sm text-gray-500">פרויקטים שנסגרו החודש</p>
-            <p className="text-3xl font-bold mt-1">{closedThisMonth}</p>
+      <AdminSection title="סיכום חודשי">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="card" style={{ padding: '1.25rem 1.5rem' }}>
+            <p style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>פרויקטים שנסגרו החודש</p>
+            <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-display)', margin: 0, lineHeight: 1.1 }}>{closedThisMonth}</p>
           </div>
-          <div className="bg-white rounded-2xl shadow p-5">
-            <p className="text-sm text-gray-500">גבייה שהתקבלה החודש</p>
-            <p className="text-3xl font-bold mt-1">{formatCurrency(totalCollectedMonth)}</p>
+          <div className="card" style={{ padding: '1.25rem 1.5rem' }}>
+            <p style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>גבייה שהתקבלה החודש</p>
+            <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--gold-bright)', fontFamily: 'var(--font-display)', margin: 0, lineHeight: 1.1 }}>{formatCurrency(totalCollectedMonth)}</p>
           </div>
         </div>
-      </section>
+      </AdminSection>
 
       {/* All projects */}
-      <section>
-        <h2 className="text-lg font-semibold mb-4">כל הפרויקטים</h2>
-        <div className="bg-white rounded-2xl shadow overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="text-right px-4 py-3 font-medium">מספר</th>
-                <th className="text-right px-4 py-3 font-medium">שם</th>
-                <th className="text-right px-4 py-3 font-medium">לקוח</th>
-                <th className="text-right px-4 py-3 font-medium">ערך חוזה</th>
-                <th className="text-right px-4 py-3 font-medium">סטטוס</th>
+      <AdminSection title="כל הפרויקטים">
+        <div className="card" style={{ overflow: 'hidden', padding: 0 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-raised)' }}>
+                {['מספר', 'שם', 'לקוח', 'ערך חוזה', 'סטטוס'].map(h => (
+                  <th key={h} style={{ textAlign: 'right', padding: '0.75rem 1rem', fontWeight: 600, fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y">
-              {(projects ?? []).map(p => (
-                <tr key={p.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-mono text-gray-500 text-xs">{formatProjectNumber(p.project_number)}</td>
-                  <td className="px-4 py-3">
-                    <Link href={`/projects/${p.id}`} className="text-blue-600 hover:underline">{p.name}</Link>
+            <tbody>
+              {(projects ?? []).map((p, i) => (
+                <tr key={p.id} style={{ borderBottom: i < (projects?.length ?? 0) - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
+                  <td style={{ padding: '0.75rem 1rem', fontFamily: 'monospace', color: 'var(--gold)', fontSize: '0.72rem', fontWeight: 600 }}>
+                    {formatProjectNumber(p.project_number)}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{p.client_name}</td>
-                  <td className="px-4 py-3">{formatCurrency(p.contract_value)}</td>
-                  <td className="px-4 py-3">{PROJECT_STATUS_LABELS[p.status]}</td>
+                  <td style={{ padding: '0.75rem 1rem' }}>
+                    <Link href={`/projects/${p.id}`} style={{ color: 'var(--text-primary)', textDecoration: 'none', fontWeight: 500 }}>
+                      {p.name}
+                    </Link>
+                  </td>
+                  <td style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)' }}>{p.client_name}</td>
+                  <td style={{ padding: '0.75rem 1rem', color: 'var(--gold-bright)', fontWeight: 600 }}>{formatCurrency(p.contract_value)}</td>
+                  <td style={{ padding: '0.75rem 1rem' }}>
+                    <span className={PROJECT_STATUS_BADGE[p.status] ?? 'badge badge-closed'}>
+                      {PROJECT_STATUS_LABELS[p.status]}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </section>
+      </AdminSection>
 
       {/* User management */}
-      <section>
-        <h2 className="text-lg font-semibold mb-4">ניהול משתמשים</h2>
+      <AdminSection title="ניהול משתמשים">
         <UserManagement users={users ?? []} />
-      </section>
+      </AdminSection>
 
       {/* History log */}
-      <section>
-        <h2 className="text-lg font-semibold mb-4">היסטוריית שינויים</h2>
-        <div className="bg-white rounded-2xl shadow p-5">
+      <AdminSection title="היסטוריית שינויים">
+        <div className="card" style={{ padding: '0.5rem 1.25rem' }}>
           <StageHistoryLog history={history ?? []} />
         </div>
-      </section>
+      </AdminSection>
     </div>
+  )
+}
+
+function AdminSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section style={{ marginBottom: '2.5rem' }}>
+      <h2 style={{
+        fontFamily: 'var(--font-display)',
+        fontSize: '1.05rem',
+        fontWeight: 700,
+        color: 'var(--text-secondary)',
+        margin: '0 0 1rem',
+        letterSpacing: '-0.01em',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+      }}>
+        <span style={{ width: '3px', height: '16px', background: 'var(--gold)', borderRadius: '2px', display: 'inline-block' }} />
+        {title}
+      </h2>
+      {children}
+    </section>
   )
 }

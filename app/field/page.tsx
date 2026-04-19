@@ -1,57 +1,88 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { formatProjectNumber, STAGE_STATUS_LABELS } from '@/lib/formatters'
+import { StatusFilterBar } from '@/components/StatusFilterBar'
+import { FieldStageCard } from '@/components/FieldStageCard'
+import { UserRole } from '@/lib/types'
 import Link from 'next/link'
 
 const FIELD_ROLES = ['developer', 'admin', 'field_manager']
+const DEFAULT_STATUSES = ['pending', 'in_progress']
 
-export default async function FieldPage() {
+interface Props {
+  searchParams: Promise<{ s?: string | string[] }>
+}
+
+export default async function FieldPage({ searchParams }: Props) {
+  const { s } = await searchParams
+  const selected: string[] = s ? (Array.isArray(s) ? s : [s]) : DEFAULT_STATUSES
+
   const supabase = await createClient()
-
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase.from('user_profiles').select('role').eq('id', user.id).single()
   if (!FIELD_ROLES.includes(profile?.role ?? '')) redirect('/dashboard')
 
-  const { data: stages } = await supabase
+  const isAdmin = ['developer', 'admin'].includes(profile?.role ?? '')
+
+  let stagesQuery = supabase
     .from('project_stages')
-    .select(`*, projects(id, name, project_number, client_name)`)
-    .eq('owner_id', user.id)
+    .select(`*, projects(id, name, project_number, client_name, contract_value, cost_estimate)`)
     .in('stage_number', [3, 6, 7])
-    .in('status', ['pending', 'in_progress', 'blocked'])
+    .in('status', selected.length > 0 ? selected : ['pending'])
+    .order('stage_number', { ascending: true })
+
+  if (!isAdmin) stagesQuery = stagesQuery.eq('owner_id', user.id)
+
+  const { data: stages } = await stagesQuery
+
+  // Group by project
+  const projectMap = new Map<string, { project: any; stages: any[] }>()
+  for (const stage of stages ?? []) {
+    const pid = stage.project_id
+    if (!projectMap.has(pid)) projectMap.set(pid, { project: stage.projects, stages: [] })
+    projectMap.get(pid)!.stages.push(stage)
+  }
+  const grouped = Array.from(projectMap.values())
+
+  // Fetch attachments for all relevant project_ids
+  const projectIds = Array.from(projectMap.keys())
+  const { data: attachments } = projectIds.length > 0
+    ? await supabase.from('attachments').select('*').in('project_id', projectIds)
+    : { data: [] }
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <div className="mb-4">
-        <Link href="/dashboard" className="text-blue-600 text-sm hover:underline">← לוח בקרה</Link>
-      </div>
-      <h1 className="text-2xl font-bold mb-6">שטח</h1>
+    <div style={{ maxWidth: '860px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+      <Link href="/dashboard" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', marginBottom: '1.5rem' }}>
+        ← לוח בקרה
+      </Link>
 
-      {(stages ?? []).length === 0 ? (
-        <p className="text-gray-400 text-center py-12">אין שלבים פעילים</p>
+      <h1 style={{
+        fontFamily: 'var(--font-display)',
+        fontSize: '1.75rem',
+        fontWeight: 900,
+        color: 'var(--text-primary)',
+        margin: '0 0 1.5rem',
+        letterSpacing: '-0.02em',
+      }}>שטח</h1>
+
+      <StatusFilterBar selected={selected} />
+
+      {grouped.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-muted)' }}>
+          <p>אין שלבים להצגה</p>
+        </div>
       ) : (
-        <div className="space-y-4">
-          {(stages ?? []).map((stage: any) => (
-            <div key={stage.id} className="bg-white rounded-2xl shadow p-5">
-              <p className="text-xs text-gray-400 font-mono">{formatProjectNumber(stage.projects?.project_number)}</p>
-              <Link href={`/projects/${stage.project_id}`} className="font-semibold text-blue-600 hover:underline">
-                {stage.projects?.name}
-              </Link>
-              <p className="text-sm text-gray-500">{stage.projects?.client_name}</p>
-              <div className="mt-3 bg-gray-50 rounded-xl p-3">
-                <p className="text-sm font-medium">שלב {stage.stage_number}: {stage.stage_name}</p>
-                <p className="text-xs text-gray-500">{STAGE_STATUS_LABELS[stage.status]}</p>
-              </div>
-              <div className="mt-3">
-                <Link
-                  href={`/projects/${stage.project_id}`}
-                  className="text-sm text-blue-600 hover:underline"
-                >
-                  עדכן שלב / העלה קובץ / פתח זנב ←
-                </Link>
-              </div>
-            </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {grouped.map(({ project, stages: projectStages }) => (
+            <FieldStageCard
+              key={project.id}
+              project={project}
+              stages={projectStages}
+              attachments={(attachments ?? []).filter((a: any) => a.project_id === project.id)}
+              currentUserId={user.id}
+              currentUserRole={(profile?.role ?? 'field_manager') as UserRole}
+            />
           ))}
         </div>
       )}

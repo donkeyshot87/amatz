@@ -29,6 +29,12 @@ const STATUS_LABELS: Record<BillingAlertStatus, string> = {
   done: 'טופל',
 }
 
+const STATUS_BADGE: Record<BillingAlertStatus, string> = {
+  pending: 'badge badge-pending',
+  in_progress: 'badge badge-in-progress',
+  done: 'badge badge-done',
+}
+
 export function BillingClient({ alerts, totalPending, totalDoneMonth, currentUserId }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
@@ -44,68 +50,115 @@ export function BillingClient({ alerts, totalPending, totalDoneMonth, currentUse
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <div className="mb-4">
-        <Link href="/dashboard" className="text-blue-600 text-sm hover:underline">← לוח בקרה</Link>
-      </div>
-      <h1 className="text-2xl font-bold mb-6">גבייה</h1>
+    <div style={{ maxWidth: '860px', margin: '0 auto', padding: '2rem 1.5rem' }}>
 
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-5">
-          <p className="text-sm text-orange-600 font-medium">ממתין לגבייה</p>
-          <p className="text-2xl font-bold text-orange-800 mt-1">{formatCurrency(totalPending)}</p>
+      {/* Back */}
+      <Link href="/dashboard" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', marginBottom: '1.5rem' }}>
+        ← לוח בקרה
+      </Link>
+
+      <h1 style={{
+        fontFamily: 'var(--font-display)',
+        fontSize: '1.75rem',
+        fontWeight: 900,
+        color: 'var(--text-primary)',
+        margin: '0 0 1.75rem',
+        letterSpacing: '-0.02em',
+      }}>גבייה</h1>
+
+      {/* Summary cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
+        <div className="card" style={{ padding: '1.25rem 1.5rem', borderRight: '3px solid var(--status-pending)' }}>
+          <p style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+            ממתין לגבייה
+          </p>
+          <p style={{ fontSize: '1.75rem', fontWeight: 700, color: '#fbbf24', margin: 0, fontFamily: 'var(--font-display)', lineHeight: 1.1 }}>
+            {formatCurrency(totalPending)}
+          </p>
         </div>
-        <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
-          <p className="text-sm text-green-600 font-medium">טופל החודש</p>
-          <p className="text-2xl font-bold text-green-800 mt-1">{formatCurrency(totalDoneMonth)}</p>
+        <div className="card" style={{ padding: '1.25rem 1.5rem', borderRight: '3px solid var(--status-done)' }}>
+          <p style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+            טופל החודש
+          </p>
+          <p style={{ fontSize: '1.75rem', fontWeight: 700, color: '#4ade80', margin: 0, fontFamily: 'var(--font-display)', lineHeight: 1.1 }}>
+            {formatCurrency(totalDoneMonth)}
+          </p>
         </div>
       </div>
 
-      <div className="space-y-3">
+      {/* Alert list */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         {alerts.length === 0 && (
-          <p className="text-gray-400 text-center py-8">אין התראות גבייה</p>
+          <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-muted)' }}>
+            <p style={{ fontSize: '0.95rem' }}>אין התראות גבייה</p>
+          </div>
         )}
         {alerts.map(alert => (
-          <div key={alert.id} className={`bg-white rounded-2xl shadow p-5 ${alert.status === 'done' ? 'opacity-60' : ''}`}>
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-medium">{alert.projects?.name}</p>
-                <p className="text-sm text-gray-500">
+          <div
+            key={alert.id}
+            className="card metal-card"
+            style={{
+              padding: '1.25rem 1.5rem',
+              opacity: alert.status === 'done' ? 0.55 : 1,
+              transition: 'opacity 0.2s',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.95rem' }}>
+                    {alert.projects?.name}
+                  </span>
+                  <span className={STATUS_BADGE[alert.status]}>
+                    {STATUS_LABELS[alert.status]}
+                  </span>
+                </div>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '0 0 2px' }}>
                   שלב {alert.project_stages?.stage_number} — {alert.project_stages?.stage_name}
                 </p>
-                <p className="text-xs text-gray-400 mt-1">{formatDate(alert.created_at)}</p>
+                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0 }}>
+                  {formatDate(alert.created_at)}
+                </p>
               </div>
-              <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                <p className="font-bold text-lg">{formatCurrency(alert.amount)}</p>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                  alert.status === 'done' ? 'bg-green-100 text-green-700' :
-                  alert.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
-                  'bg-orange-100 text-orange-700'
-                }`}>
-                  {STATUS_LABELS[alert.status]}
-                </span>
+
+              <div style={{ textAlign: 'left', flexShrink: 0 }}>
+                <p style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--gold-bright)', fontFamily: 'var(--font-display)', margin: '0 0 0.75rem', lineHeight: 1.1 }}>
+                  {formatCurrency(alert.amount)}
+                </p>
+                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                  {alert.status === 'pending' && (
+                    <button
+                      onClick={() => updateAlert(alert.id, 'in_progress')}
+                      disabled={loading === alert.id}
+                      className="btn-secondary"
+                      style={{ fontSize: '0.78rem', padding: '0.35rem 0.85rem' }}
+                    >
+                      בטיפול
+                    </button>
+                  )}
+                  {alert.status === 'done' && (
+                    <button
+                      onClick={() => updateAlert(alert.id, 'in_progress')}
+                      disabled={loading === alert.id}
+                      className="btn-secondary"
+                      style={{ fontSize: '0.78rem', padding: '0.35rem 0.85rem' }}
+                    >
+                      החזר לטיפול
+                    </button>
+                  )}
+                  {alert.status !== 'done' && (
+                    <button
+                      onClick={() => updateAlert(alert.id, 'done')}
+                      disabled={loading === alert.id}
+                      className="btn-primary"
+                      style={{ fontSize: '0.78rem', padding: '0.35rem 0.85rem' }}
+                    >
+                      ✓ טופל
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-            {alert.status !== 'done' && (
-              <div className="flex gap-2 mt-4">
-                {alert.status === 'pending' && (
-                  <button
-                    onClick={() => updateAlert(alert.id, 'in_progress')}
-                    disabled={loading === alert.id}
-                    className="text-sm border rounded-lg px-4 py-1.5 hover:bg-gray-50"
-                  >
-                    בטיפול
-                  </button>
-                )}
-                <button
-                  onClick={() => updateAlert(alert.id, 'done')}
-                  disabled={loading === alert.id}
-                  className="text-sm bg-green-600 text-white rounded-lg px-4 py-1.5 hover:bg-green-700"
-                >
-                  טופל
-                </button>
-              </div>
-            )}
           </div>
         ))}
       </div>

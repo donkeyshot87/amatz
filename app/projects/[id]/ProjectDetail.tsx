@@ -32,10 +32,16 @@ interface Props {
   history: HistoryEntry[]
 }
 
-const PROJECT_STATUS_COLORS: Record<string, string> = {
-  active: 'bg-blue-100 text-blue-700',
-  delivered_with_issues: 'bg-red-100 text-red-700',
-  closed: 'bg-gray-100 text-gray-600',
+const PROJECT_STATUS_DOT: Record<string, string> = {
+  active: 'status-dot status-dot-active',
+  delivered_with_issues: 'status-dot status-dot-issues',
+  closed: 'status-dot status-dot-closed',
+}
+
+const PROJECT_STATUS_BADGE: Record<string, string> = {
+  active: 'badge badge-active',
+  delivered_with_issues: 'badge badge-issues',
+  closed: 'badge badge-closed',
 }
 
 export function ProjectDetail({ project, stages, tailIssues, attachments, currentUserId, currentUserRole, ownerNames, history }: Props) {
@@ -62,16 +68,31 @@ export function ProjectDetail({ project, stages, tailIssues, attachments, curren
     router.refresh()
   }
 
-  return (
-    <div className="max-w-3xl mx-auto p-6">
-      <div className="mb-4">
-        <Link href="/dashboard" className="text-blue-600 text-sm hover:underline">← לוח בקרה</Link>
-      </div>
+  const openTailCount = tailIssues.filter(t => t.status !== 'resolved').length
 
-      {/* Project header */}
-      <div className="bg-white rounded-2xl shadow p-6 mb-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
+  return (
+    <div style={{ maxWidth: '860px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+
+      {/* Back link */}
+      <Link href="/dashboard" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', marginBottom: '1.5rem' }}>
+        ← לוח בקרה
+      </Link>
+
+      {/* Project header card */}
+      <div className="card metal-card" style={{ padding: '1.75rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{
+              fontSize: '0.68rem',
+              fontFamily: 'monospace',
+              color: 'var(--gold)',
+              fontWeight: 600,
+              letterSpacing: '0.05em',
+              marginBottom: '6px',
+            }}>
+              {formatProjectNumber(project.project_number)}
+            </p>
+
             {editingName ? (
               <input
                 autoFocus
@@ -80,101 +101,180 @@ export function ProjectDetail({ project, stages, tailIssues, attachments, curren
                 onBlur={saveName}
                 onKeyDown={e => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') { setEditingName(false); setNameValue(project.name) } }}
                 disabled={savingName}
-                className="text-2xl font-bold border-b-2 border-blue-500 outline-none bg-transparent w-full"
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '1.6rem',
+                  fontWeight: 900,
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: '2px solid var(--gold)',
+                  color: 'var(--text-primary)',
+                  outline: 'none',
+                  width: '100%',
+                  letterSpacing: '-0.02em',
+                }}
               />
             ) : (
               <h1
-                className={`text-2xl font-bold ${canEdit ? 'cursor-pointer hover:text-blue-600 group' : ''}`}
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '1.6rem',
+                  fontWeight: 900,
+                  color: 'var(--text-primary)',
+                  margin: 0,
+                  letterSpacing: '-0.02em',
+                  cursor: canEdit ? 'pointer' : 'default',
+                }}
                 onClick={() => canEdit && setEditingName(true)}
                 title={canEdit ? 'לחץ לעריכה' : undefined}
               >
                 {nameValue}
-                {canEdit && <span className="text-sm text-gray-400 font-normal me-2 opacity-0 group-hover:opacity-100"> ✎</span>}
+                {canEdit && <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 400, marginRight: '8px', opacity: 0.5 }}> ✎</span>}
               </h1>
             )}
-            <p className="text-gray-700 text-sm mt-1">
-              {formatProjectNumber(project.project_number)} · {project.client_name}
-            </p>
-            {project.planned_delivery_date && (
-              <p className="text-gray-700 text-sm">מסירה מתוכננת: {formatDate(project.planned_delivery_date)}</p>
-            )}
-            {project.actual_delivery_date && (
-              <p className="text-gray-700 text-sm">מסירה בפועל: {formatDate(project.actual_delivery_date)}</p>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{project.client_name}</span>
+              {project.planned_delivery_date && (
+                <>
+                  <span style={{ color: 'var(--border-mid)' }}>·</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>מסירה: {formatDate(project.planned_delivery_date)}</span>
+                </>
+              )}
+              {project.actual_delivery_date && (
+                <>
+                  <span style={{ color: 'var(--border-mid)' }}>·</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>בפועל: {formatDate(project.actual_delivery_date)}</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className={PROJECT_STATUS_DOT[project.status]} />
+              <span className={PROJECT_STATUS_BADGE[project.status]}>{PROJECT_STATUS_LABELS[project.status]}</span>
+            </div>
+            {openTailCount > 0 && (
+              <span className="badge badge-issues">{openTailCount} זנב פתוח</span>
             )}
           </div>
-          <span className={`text-sm px-3 py-1 rounded-full font-medium flex-shrink-0 ${PROJECT_STATUS_COLORS[project.status]}`}>
-            {PROJECT_STATUS_LABELS[project.status]}
-          </span>
         </div>
 
+        {/* Finance data */}
         {can(currentUserRole, FINANCE_ROLES) && (
-          <div className="mt-4 grid grid-cols-2 gap-4 bg-gray-50 rounded-xl p-4">
+          <div style={{
+            marginTop: '1.25rem',
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '1rem',
+            background: 'var(--bg-deep)',
+            borderRadius: '10px',
+            padding: '1rem 1.25rem',
+          }}>
             <div>
-              <p className="text-xs text-gray-500">ערך חוזה</p>
-              <p className="font-semibold">{formatCurrency(project.contract_value)}</p>
+              <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>ערך חוזה</p>
+              <p style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--gold-bright)', fontFamily: 'var(--font-display)', margin: 0, lineHeight: 1.1 }}>
+                {formatCurrency(project.contract_value)}
+              </p>
             </div>
             <div>
-              <p className="text-xs text-gray-500">עלות מוערכת</p>
-              <p className="font-semibold">{formatCurrency(project.cost_estimate)}</p>
+              <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>עלות מוערכת</p>
+              <p style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-secondary)', fontFamily: 'var(--font-display)', margin: 0, lineHeight: 1.1 }}>
+                {formatCurrency(project.cost_estimate)}
+              </p>
             </div>
           </div>
         )}
 
         {project.description && (
-          <p className="mt-4 text-gray-600 text-sm">{project.description}</p>
+          <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+            {project.description}
+          </p>
         )}
       </div>
 
       {/* Stage timeline */}
-      <h2 className="text-lg font-semibold mb-3">שלבי הפרויקט</h2>
-      <StageTimeline
-        stages={stages}
-        attachments={attachments}
-        project={project}
-        currentUserId={currentUserId}
-        currentUserRole={currentUserRole}
-        onStageUpdated={handleStageUpdated}
-        onRefresh={() => router.refresh()}
-      />
+      <SectionTitle>שלבי הפרויקט</SectionTitle>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <StageTimeline
+          stages={stages}
+          attachments={attachments}
+          project={project}
+          currentUserId={currentUserId}
+          currentUserRole={currentUserRole}
+          onStageUpdated={handleStageUpdated}
+          onRefresh={() => router.refresh()}
+        />
+      </div>
 
       {/* Tail issues */}
-      <div className="mt-8">
-        <h2 className="text-lg font-semibold mb-3">זנבות</h2>
-        <div className="bg-white rounded-2xl shadow p-5 space-y-4">
-          <TailIssueList issues={tailIssues} onUpdated={() => router.refresh()} />
+      <SectionTitle>זנבות</SectionTitle>
+      <div className="card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
+        <TailIssueList issues={tailIssues} onUpdated={() => router.refresh()} />
+        <div style={{ marginTop: tailIssues.length > 0 ? '1rem' : 0, paddingTop: tailIssues.length > 0 ? '1rem' : 0, borderTop: tailIssues.length > 0 ? '1px solid var(--border-subtle)' : 'none' }}>
           <TailIssueForm projectId={project.id} onCreated={() => router.refresh()} />
         </div>
       </div>
 
-      <div className="mt-8">
-        <h2 className="text-lg font-semibold mb-3">היסטוריית שינויים</h2>
-        <div className="bg-white rounded-2xl shadow p-5">
-          {history.length === 0 ? (
-            <p className="text-gray-400 text-sm">אין שינויים עדיין</p>
-          ) : (
-            <div className="space-y-2">
-              {history.map(entry => (
-                <div key={entry.id} className="flex items-center justify-between text-sm py-2 border-b last:border-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium">שלב {entry.project_stages?.stage_number}: {entry.project_stages?.stage_name}</span>
-                    <span className="text-gray-400">←</span>
-                    <span className="text-gray-700">{STAGE_STATUS_LABELS[entry.old_status ?? ''] ?? entry.old_status}</span>
-                    <span className="text-gray-400">→</span>
-                    <span className="font-medium text-blue-700">{STAGE_STATUS_LABELS[entry.new_status] ?? entry.new_status}</span>
-                  </div>
-                  <div className="text-xs text-gray-400 text-left flex-shrink-0 mr-4">
-                    <span>{ownerNames[entry.changed_by ?? ''] ?? '—'}</span>
-                    <span className="mx-1">·</span>
-                    <span>{formatDate(entry.changed_at)}</span>
-                  </div>
+      {/* History */}
+      {history.length > 0 && (
+        <>
+          <SectionTitle>היסטוריית שינויים</SectionTitle>
+          <div className="card" style={{ padding: '0.5rem 1.25rem', marginBottom: '1.5rem' }}>
+            {history.map((entry, i) => (
+              <div
+                key={entry.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0.7rem 0',
+                  borderBottom: i < history.length - 1 ? '1px solid var(--border-subtle)' : 'none',
+                  gap: '1rem',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', fontSize: '0.82rem' }}>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                    שלב {entry.project_stages?.stage_number}: {entry.project_stages?.stage_name}
+                  </span>
+                  <span style={{ color: 'var(--text-muted)' }}>←</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>{STAGE_STATUS_LABELS[entry.old_status ?? ''] ?? entry.old_status}</span>
+                  <span style={{ color: 'var(--text-muted)' }}>→</span>
+                  <span style={{ color: 'var(--gold)', fontWeight: 600 }}>{STAGE_STATUS_LABELS[entry.new_status] ?? entry.new_status}</span>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', flexShrink: 0, display: 'flex', gap: '6px' }}>
+                  <span>{ownerNames[entry.changed_by ?? ''] ?? '—'}</span>
+                  <span>·</span>
+                  <span>{formatDate(entry.changed_at)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       {toast && <ConfirmationToast message={toast} onClose={() => setToast(null)} />}
     </div>
+  )
+}
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 style={{
+      fontFamily: 'var(--font-display)',
+      fontSize: '1.05rem',
+      fontWeight: 700,
+      color: 'var(--text-secondary)',
+      margin: '0 0 0.75rem',
+      letterSpacing: '-0.01em',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+    }}>
+      <span style={{ width: '3px', height: '16px', background: 'var(--gold)', borderRadius: '2px', display: 'inline-block' }} />
+      {children}
+    </h2>
   )
 }

@@ -9,9 +9,23 @@ export function BillingAlertBadge({ count }: Props) {
   return (
     <Link
       href="/billing"
-      className="inline-flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-full px-3 py-1.5 text-sm text-orange-700 hover:bg-orange-100"
+      style={{
+        textDecoration: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        background: 'rgba(245,158,11,0.1)',
+        border: '1px solid rgba(245,158,11,0.3)',
+        borderRadius: '999px',
+        padding: '0.35rem 0.9rem',
+        fontSize: '0.8rem',
+        fontWeight: 600,
+        color: '#fbbf24',
+        transition: 'background 0.15s',
+      }}
     >
-      🔔 {count} התראות גבייה
+      <span style={{ fontSize: '0.9rem' }}>🔔</span>
+      {count} התראות גבייה
     </Link>
   )
 }
