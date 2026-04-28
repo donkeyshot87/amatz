@@ -39,7 +39,7 @@ export function TailIssueForm({ projectId, onCreated }: Props) {
         onClick={() => setOpen(true)}
         style={{ color: 'var(--status-issues)', fontSize: '0.8rem', padding: '0.3rem 0' }}
       >
-        + פתח בעיית זנב
+        + פתח גמר
       </button>
     )
   }
@@ -56,13 +56,13 @@ export function TailIssueForm({ projectId, onCreated }: Props) {
       gap: '0.75rem',
     }}>
       <p style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--status-issues)', margin: 0 }}>
-        בעיה חדשה
+        גמר חדש
       </p>
       <textarea
         required
         value={description}
         onChange={e => setDescription(e.target.value)}
-        placeholder="תיאור הבעיה..."
+        placeholder="תיאור הגמר..."
         rows={3}
         className="input-field"
         style={{ resize: 'vertical' }}
@@ -74,7 +74,7 @@ export function TailIssueForm({ projectId, onCreated }: Props) {
           className="btn-primary"
           style={{ fontSize: '0.8rem', padding: '0.4rem 1rem' }}
         >
-          {loading ? 'שומר...' : 'פתח בעיה'}
+          {loading ? 'שומר...' : 'הוסף גמר'}
         </button>
         <button
           type="button"

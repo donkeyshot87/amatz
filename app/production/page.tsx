@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { formatProjectNumber, formatDate } from '@/lib/formatters'
-import { StatusFilterBar } from '@/components/StatusFilterBar'
+import { FilterBar } from '@/components/FilterBar'
 import { FieldStageCard } from '@/components/FieldStageCard'
 import { UserRole } from '@/lib/types'
 import Link from 'next/link'
@@ -11,13 +11,15 @@ const PRODUCTION_STAGES = [2, 4, 5]
 const DEFAULT_STATUSES = ['pending', 'in_progress']
 
 interface Props {
-  searchParams: Promise<{ s?: string | string[] }>
+  searchParams: Promise<{ s?: string | string[]; q?: string; sort?: string }>
 }
 
 export default async function ProductionPage({ searchParams }: Props) {
-  const { s } = await searchParams
+  const { s, q, sort } = await searchParams
   const raw: string[] = s ? (Array.isArray(s) ? s : [s]) : DEFAULT_STATUSES
   const selected: string[] = raw.includes('__none__') ? [] : raw
+  const searchQuery = q ?? ''
+  const sortValue = sort ?? 'created_desc'
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -62,7 +64,7 @@ export default async function ProductionPage({ searchParams }: Props) {
         letterSpacing: '-0.02em',
       }}>ייצור</h1>
 
-      <StatusFilterBar selected={selected} />
+      <FilterBar selected={selected} searchQuery={searchQuery} sortValue={sortValue} />
 
       {productionProjects.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-muted)' }}>

@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body style={{ background: 'var(--bg-deep)', color: 'var(--text-primary)', minHeight: '100vh' }}>
+      <body style={{ background: 'var(--bg-page)', color: 'var(--text-primary)', minHeight: '100vh' }}>
         <NavBar />
         <main>{children}</main>
       </body>

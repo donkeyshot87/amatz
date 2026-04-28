@@ -35,7 +35,7 @@ export default function LoginPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'var(--bg-deep)',
+      background: 'var(--bg-page)',
       position: 'relative',
       overflow: 'hidden',
       padding: '1.5rem',
@@ -61,7 +61,7 @@ export default function LoginPage() {
         transform: 'translate(-50%, -50%)',
         width: '600px',
         height: '400px',
-        background: 'radial-gradient(ellipse, rgba(200,168,75,0.08) 0%, transparent 70%)',
+        background: 'radial-gradient(ellipse, rgba(37,99,235,0.06) 0%, transparent 70%)',
         pointerEvents: 'none',
       }} />
 
@@ -71,7 +71,7 @@ export default function LoginPage() {
           <div style={{
             width: '56px',
             height: '56px',
-            background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-bright) 100%)',
+            background: 'var(--brand)',
             borderRadius: '14px',
             display: 'flex',
             alignItems: 'center',
@@ -80,7 +80,7 @@ export default function LoginPage() {
             fontWeight: 900,
             color: 'var(--text-inverse)',
             margin: '0 auto 1rem',
-            boxShadow: 'var(--shadow-gold)',
+            boxShadow: 'var(--shadow-card)',
           }}>א</div>
           <h1 style={{
             fontFamily: 'var(--font-display)',

@@ -2,18 +2,40 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { ProjectCard } from '@/components/ProjectCard'
 import { BillingAlertBadge } from '@/components/BillingAlertBadge'
+import { FilterBar } from '@/components/FilterBar'
 import { can, BILLING_ROLES, CREATE_PROJECT_ROLES } from '@/lib/permissions'
 import { UserRole } from '@/lib/types'
 import Link from 'next/link'
 
 interface Props {
-  searchParams: Promise<{ status?: string }>
+  searchParams: Promise<{ s?: string | string[]; q?: string; sort?: string }>
+}
+
+function applySort(projects: any[], sort: string) {
+  return [...projects].sort((a, b) => {
+    if (sort === 'created_asc') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    if (sort === 'delivery_asc') {
+      const da = a.planned_delivery_date ? new Date(a.planned_delivery_date).getTime() : Infinity
+      const db = b.planned_delivery_date ? new Date(b.planned_delivery_date).getTime() : Infinity
+      return da - db
+    }
+    if (sort === 'delivery_desc') {
+      const da = a.planned_delivery_date ? new Date(a.planned_delivery_date).getTime() : -Infinity
+      const db = b.planned_delivery_date ? new Date(b.planned_delivery_date).getTime() : -Infinity
+      return db - da
+    }
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  })
 }
 
 export default async function DashboardPage({ searchParams }: Props) {
-  const { status: filterStatus } = await searchParams
-  const supabase = await createClient()
+  const { s, q, sort } = await searchParams
+  const rawS: string[] = s ? (Array.isArray(s) ? s : [s]) : []
+  const selected = rawS.includes('__none__') ? [] : rawS
+  const searchQuery = q ?? ''
+  const sortValue = sort ?? 'created_desc'
 
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -28,7 +50,6 @@ export default async function DashboardPage({ searchParams }: Props) {
   const { data: projects } = await supabase
     .from('projects')
     .select('*')
-    .order('created_at', { ascending: false })
 
   const { data: openTails } = await supabase
     .from('tail_issues')
@@ -40,10 +61,21 @@ export default async function DashboardPage({ searchParams }: Props) {
     return acc
   }, {} as Record<string, number>)
 
-  const enrichedProjects = (projects ?? [])
-    .map(p => ({ ...p, open_tail_issues: tailCountMap[p.id] ?? 0 }))
-    .filter(p => !filterStatus || p.status === filterStatus)
-    .sort((a, b) => (b.open_tail_issues > 0 ? 1 : 0) - (a.open_tail_issues > 0 ? 1 : 0))
+  let enriched = (projects ?? []).map(p => ({ ...p, open_tail_issues: tailCountMap[p.id] ?? 0 }))
+
+  if (selected.length > 0) {
+    enriched = enriched.filter(p => selected.includes(p.status))
+  }
+
+  if (searchQuery) {
+    const qLower = searchQuery.toLowerCase()
+    enriched = enriched.filter(p =>
+      p.name.toLowerCase().includes(qLower) || p.client_name.toLowerCase().includes(qLower)
+    )
+  }
+
+  enriched = applySort(enriched, sortValue)
+  enriched.sort((a, b) => (b.open_tail_issues > 0 ? 1 : 0) - (a.open_tail_issues > 0 ? 1 : 0))
 
   let pendingBillingCount = 0
   if (can(role, BILLING_ROLES)) {
@@ -54,43 +86,21 @@ export default async function DashboardPage({ searchParams }: Props) {
     pendingBillingCount = count ?? 0
   }
 
-  const STATUS_FILTERS = [
-    { value: '', label: 'הכל' },
-    { value: 'active', label: 'פעיל' },
-    { value: 'delivered_with_issues', label: 'נמסר עם בעיות' },
-    { value: 'closed', label: 'סגור' },
-  ]
-
   const activeCount = (projects ?? []).filter(p => p.status === 'active').length
   const issuesCount = (projects ?? []).filter(p => p.status === 'delivered_with_issues').length
   const closedCount = (projects ?? []).filter(p => p.status === 'closed').length
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-
-      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
         <div>
-          <h1 style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '1.75rem',
-            fontWeight: 900,
-            color: 'var(--text-primary)',
-            margin: '0 0 4px',
-            letterSpacing: '-0.02em',
-          }}>לוח בקרה</h1>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
-            {(projects ?? []).length} פרויקטים במערכת
-          </p>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-primary)', margin: '0 0 4px', letterSpacing: '-0.02em' }}>לוח בקרה</h1>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>{(projects ?? []).length} פרויקטים במערכת</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           {can(role, BILLING_ROLES) && <BillingAlertBadge count={pendingBillingCount} />}
           {can(role, CREATE_PROJECT_ROLES) && (
-            <Link
-              href="/projects/new"
-              className="btn-primary"
-              style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-            >
+            <Link href="/projects/new" className="btn-primary" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontSize: '1rem', lineHeight: 1 }}>+</span>
               פרויקט חדש
             </Link>
@@ -98,53 +108,26 @@ export default async function DashboardPage({ searchParams }: Props) {
         </div>
       </div>
 
-      {/* Stats strip */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '1.75rem' }}>
         <StatCard label="פעיל" value={activeCount} color="var(--status-active)" />
         <StatCard label="עם בעיות" value={issuesCount} color="var(--status-issues)" />
         <StatCard label="סגור" value={closedCount} color="var(--text-muted)" />
       </div>
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-        {STATUS_FILTERS.map(f => {
-          const isActive = (filterStatus ?? '') === f.value
-          return (
-            <Link
-              key={f.value}
-              href={f.value ? `?status=${f.value}` : '/dashboard'}
-              style={{
-                textDecoration: 'none',
-                padding: '0.35rem 1rem',
-                borderRadius: '999px',
-                fontSize: '0.8rem',
-                fontWeight: isActive ? 600 : 500,
-                background: isActive ? 'var(--gold)' : 'var(--bg-card)',
-                color: isActive ? 'var(--text-inverse)' : 'var(--text-secondary)',
-                border: `1px solid ${isActive ? 'var(--gold)' : 'var(--border-subtle)'}`,
-                transition: 'all 0.15s',
-              }}
-            >
-              {f.label}
-            </Link>
-          )
-        })}
-      </div>
+      <FilterBar selected={selected} searchQuery={searchQuery} sortValue={sortValue} />
 
-      {/* Project grid */}
-      {enrichedProjects.length === 0 ? (
+      {enriched.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '5rem 2rem', color: 'var(--text-muted)' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '1rem', opacity: 0.3 }}>◻</div>
-          <p style={{ fontSize: '1rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>אין פרויקטים להצגה</p>
+          <p style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>אין פרויקטים להצגה</p>
           {can(role, CREATE_PROJECT_ROLES) && (
-            <Link href="/projects/new" style={{ fontSize: '0.85rem', color: 'var(--gold)', textDecoration: 'none' }}>
+            <Link href="/projects/new" style={{ fontSize: '0.85rem', color: 'var(--brand)', textDecoration: 'none' }}>
               צור את הפרויקט הראשון ←
             </Link>
           )}
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-          {enrichedProjects.map((p, i) => (
+          {enriched.map((p, i) => (
             <div key={p.id} style={{ animationDelay: `${i * 0.05}s` }}>
               <ProjectCard project={p} />
             </div>

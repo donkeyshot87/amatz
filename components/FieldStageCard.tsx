@@ -46,8 +46,8 @@ const STAGE_STATUS_CONFIG: Record<string, string> = {
 const STATUS_OPTIONS: { value: StageStatus; label: string }[] = [
   { value: 'pending', label: 'ממתין' },
   { value: 'in_progress', label: 'בתהליך' },
-  { value: 'blocked', label: 'חסום' },
   { value: 'completed', label: 'הושלם' },
+  { value: 'blocked', label: 'חסום' },
 ]
 
 export function FieldStageCard({ project, stages, attachments, currentUserId, currentUserRole }: Props) {
@@ -80,7 +80,7 @@ export function FieldStageCard({ project, stages, attachments, currentUserId, cu
       <div className="card" style={{ overflow: 'hidden' }}>
         {/* Project header */}
         <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
-          <p style={{ fontSize: '0.65rem', fontFamily: 'monospace', color: 'var(--gold)', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '3px' }}>
+          <p style={{ fontSize: '0.65rem', fontFamily: 'monospace', color: 'var(--brand)', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '3px' }}>
             P-{String(project.project_number).padStart(3, '0')}
           </p>
           <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)', margin: '0 0 2px', letterSpacing: '-0.01em' }}>
@@ -120,7 +120,7 @@ export function FieldStageCard({ project, stages, attachments, currentUserId, cu
                     width: '26px',
                     height: '26px',
                     borderRadius: '50%',
-                    background: isCompleted ? 'rgba(34,197,94,0.12)' : 'var(--bg-deep)',
+                    background: isCompleted ? 'rgba(34,197,94,0.12)' : 'var(--bg-raised)',
                     border: `1.5px solid ${isCompleted ? 'var(--status-done)' : 'var(--border-mid)'}`,
                     display: 'flex',
                     alignItems: 'center',
@@ -151,7 +151,7 @@ export function FieldStageCard({ project, stages, attachments, currentUserId, cu
                         onChange={e => updateStatus(stage.id, e.target.value as StageStatus, stage.billing_pct)}
                         disabled={loadingStage === stage.id}
                         style={{
-                          background: 'var(--bg-deep)',
+                          background: 'var(--bg-raised)',
                           border: '1px solid var(--border-mid)',
                           borderRadius: '6px',
                           color: 'var(--text-primary)',
@@ -189,7 +189,9 @@ export function FieldStageCard({ project, stages, attachments, currentUserId, cu
                       initialNotes={stage.notes}
                       attachments={stageAttachments}
                       project={project as any}
+                      allStages={stages}
                       currentUserRole={currentUserRole}
+                      canEditProp={canEdit}
                       onUpdated={() => router.refresh()}
                     />
                   </div>

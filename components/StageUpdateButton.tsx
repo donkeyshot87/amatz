@@ -14,14 +14,15 @@ interface Props {
   currentUserId: string
   currentUserRole: UserRole
   billingPct: number
+  canEditProp: boolean
   onUpdated: (message: string) => void
 }
 
 const STATUS_OPTIONS: { value: StageStatus; label: string }[] = [
   { value: 'pending', label: 'ממתין' },
   { value: 'in_progress', label: 'בתהליך' },
-  { value: 'blocked', label: 'חסום' },
   { value: 'completed', label: 'הושלם' },
+  { value: 'blocked', label: 'חסום' },
 ]
 
 const STATUS_BADGE: Record<string, string> = {
@@ -33,12 +34,12 @@ const STATUS_BADGE: Record<string, string> = {
 
 export function StageUpdateButton({
   stageId, stageNumber, currentStatus, ownerId,
-  currentUserId, currentUserRole, billingPct, onUpdated
+  currentUserId, currentUserRole, billingPct, canEditProp, onUpdated
 }: Props) {
   const [loading, setLoading] = useState(false)
   const isOwner = ownerId === currentUserId
 
-  if (!canCompleteStage(currentUserRole, isOwner, stageNumber)) {
+  if (!canCompleteStage(currentUserRole, isOwner, stageNumber) || !canEditProp) {
     return (
       <span className={STATUS_BADGE[currentStatus] ?? 'badge badge-closed'}>
         {STAGE_STATUS_LABELS[currentStatus]}
@@ -70,7 +71,7 @@ export function StageUpdateButton({
       onChange={e => updateStatus(e.target.value as StageStatus)}
       disabled={loading}
       style={{
-        background: 'var(--bg-deep)',
+        background: 'var(--bg-surface)',
         border: '1px solid var(--border-mid)',
         borderRadius: '6px',
         color: 'var(--text-primary)',

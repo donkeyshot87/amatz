@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { ProjectStage, UserRole, Attachment, Project } from '@/lib/types'
+import { ProjectStage, UserRole, Attachment, Project, StagePulse } from '@/lib/types'
 import { STAGE_STATUS_LABELS, formatDate } from '@/lib/formatters'
 import { StageUpdateButton } from './StageUpdateButton'
 import { StagePanel } from './StagePanel'
+import { PulsePanel } from './PulsePanel'
 import { canViewStage } from '@/lib/permissions'
 
 const STAGE_OWNERS: Record<number, string> = {
@@ -26,15 +27,17 @@ const STATUS_CONFIG: Record<string, { badge: string; dot: string; color: string 
 
 interface Props {
   stages: ProjectStage[]
+  pulses: StagePulse[]
   attachments: Attachment[]
   project: Project
   currentUserId: string
   currentUserRole: UserRole
+  canEditProp: boolean
   onStageUpdated: (message: string) => void
   onRefresh: () => void
 }
 
-export function StageTimeline({ stages, attachments, project, currentUserId, currentUserRole, onStageUpdated, onRefresh }: Props) {
+export function StageTimeline({ stages, pulses, attachments, project, currentUserId, currentUserRole, canEditProp, onStageUpdated, onRefresh }: Props) {
   const [openStage, setOpenStage] = useState<number | null>(null)
   const sorted = [...stages].sort((a, b) => a.stage_number - b.stage_number)
 
@@ -49,6 +52,8 @@ export function StageTimeline({ stages, attachments, project, currentUserId, cur
         const canView = canViewStage(currentUserRole, stage.stage_number)
         const isOpen = openStage === stage.stage_number
         const stageAttachments = attachments.filter(a => a.stage_id === stage.id)
+        const stagePulses = pulses.filter(p => p.stage_id === stage.id)
+        const isPulseStage = [3, 6].includes(stage.stage_number)
         const config = STATUS_CONFIG[stage.status] ?? STATUS_CONFIG.pending
         const isCompleted = stage.status === 'completed'
 
@@ -77,7 +82,7 @@ export function StageTimeline({ stages, attachments, project, currentUserId, cur
                 width: '30px',
                 height: '30px',
                 borderRadius: '50%',
-                background: isCompleted ? 'rgba(34,197,94,0.15)' : 'var(--bg-deep)',
+                background: isCompleted ? '#dcfce7' : 'var(--bg-raised)',
                 border: `2px solid ${config.color}`,
                 display: 'flex',
                 alignItems: 'center',
@@ -98,8 +103,11 @@ export function StageTimeline({ stages, attachments, project, currentUserId, cur
                   </span>
                   <span className={config.badge}>{STAGE_STATUS_LABELS[stage.status]}</span>
                   <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{STAGE_OWNERS[stage.stage_number]}</span>
-                  {stage.billing_pct > 0 && (
-                    <span style={{ fontSize: '0.68rem', color: 'var(--gold)', fontWeight: 600 }}>{stage.billing_pct}%</span>
+                  {!isPulseStage && stage.billing_pct > 0 && (
+                    <span style={{ fontSize: '0.68rem', color: 'var(--brand)', fontWeight: 600 }}>{stage.billing_pct}%</span>
+                  )}
+                  {isPulseStage && stagePulses.length > 0 && (
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{stagePulses.length} פעימות</span>
                   )}
                 </div>
                 {stage.completed_at && (
@@ -119,6 +127,7 @@ export function StageTimeline({ stages, attachments, project, currentUserId, cur
                   currentUserId={currentUserId}
                   currentUserRole={currentUserRole}
                   billingPct={stage.billing_pct}
+                  canEditProp={canEditProp}
                   onUpdated={onStageUpdated}
                 />
               </div>
@@ -135,16 +144,31 @@ export function StageTimeline({ stages, attachments, project, currentUserId, cur
             {isOpen && (
               <div style={{ padding: '0 1.25rem 1.25rem', borderTop: '1px solid var(--border-subtle)' }}>
                 <div style={{ paddingTop: '1rem' }}>
-                  <StagePanel
-                    stageId={stage.id}
-                    projectId={project.id}
-                    stageNumber={stage.stage_number}
-                    initialNotes={stage.notes}
-                    attachments={stageAttachments}
-                    project={project}
-                    currentUserRole={currentUserRole}
-                    onUpdated={onRefresh}
-                  />
+                  {isPulseStage ? (
+                    <PulsePanel
+                      stageId={stage.id}
+                      stageNumber={stage.stage_number}
+                      projectId={project.id}
+                      contractValue={project.contract_value}
+                      pulses={stagePulses}
+                      currentUserRole={currentUserRole}
+                      canEditProp={canEditProp}
+                      onUpdated={onRefresh}
+                    />
+                  ) : (
+                    <StagePanel
+                      stageId={stage.id}
+                      projectId={project.id}
+                      stageNumber={stage.stage_number}
+                      initialNotes={stage.notes}
+                      attachments={stageAttachments}
+                      project={project}
+                      allStages={stages}
+                      currentUserRole={currentUserRole}
+                      canEditProp={canEditProp}
+                      onUpdated={onRefresh}
+                    />
+                  )}
                 </div>
               </div>
             )}

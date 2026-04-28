@@ -8,10 +8,15 @@ import { FILE_TYPE_LABELS } from '@/lib/formatters'
 interface Props {
   projectId: string
   stageId?: string
+  tailIssueId?: string
   onUploaded: () => void
 }
 
-export function FileUpload({ projectId, stageId, onUploaded }: Props) {
+function sanitizeFileName(name: string): string {
+  return name.replace(/[^a-zA-Z0-9._\-֐-׿]/g, '_')
+}
+
+export function FileUpload({ projectId, stageId, tailIssueId, onUploaded }: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [fileType, setFileType] = useState<FileType>('other')
   const [loading, setLoading] = useState(false)
@@ -25,30 +30,40 @@ export function FileUpload({ projectId, stageId, onUploaded }: Props) {
 
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) { setError('משתמש לא מחובר'); setLoading(false); return }
 
+    const safeName = sanitizeFileName(file.name)
     const path = stageId
-      ? `${projectId}/${stageId}/${Date.now()}_${file.name}`
-      : `${projectId}/${Date.now()}_${file.name}`
+      ? `${projectId}/${stageId}/${Date.now()}_${safeName}`
+      : `${projectId}/${Date.now()}_${safeName}`
 
     const { error: uploadError } = await supabase.storage
       .from('project-attachments')
       .upload(path, file)
 
     if (uploadError) {
-      setError('שגיאה בהעלאת הקובץ')
+      console.error('Upload error:', uploadError)
+      setError(`שגיאה בהעלאת הקובץ: ${uploadError.message}`)
       setLoading(false)
       return
     }
 
-    await supabase.from('attachments').insert({
+    const { error: insertError } = await supabase.from('attachments').insert({
       project_id: projectId,
       stage_id: stageId ?? null,
+      tail_issue_id: tailIssueId ?? null,
       file_name: file.name,
       file_type: fileType,
       storage_path: path,
       uploaded_by: user.id,
     })
+
+    if (insertError) {
+      console.error('Insert error:', insertError)
+      setError(`שגיאה בשמירת הקובץ: ${insertError.message}`)
+      setLoading(false)
+      return
+    }
 
     setFile(null)
     setLoading(false)
@@ -56,16 +71,17 @@ export function FileUpload({ projectId, stageId, onUploaded }: Props) {
   }
 
   return (
-    <form onSubmit={handleUpload} className="flex items-center gap-3 flex-wrap">
+    <form onSubmit={handleUpload} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
       <input
         type="file"
         onChange={e => setFile(e.target.files?.[0] ?? null)}
-        className="text-sm"
+        style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}
       />
       <select
         value={fileType}
         onChange={e => setFileType(e.target.value as FileType)}
-        className="border rounded-lg px-2 py-1.5 text-sm bg-white"
+        className="input-field"
+        style={{ width: 'auto' }}
       >
         {(Object.keys(FILE_TYPE_LABELS) as FileType[]).map(k => (
           <option key={k} value={k}>{FILE_TYPE_LABELS[k]}</option>
@@ -74,11 +90,12 @@ export function FileUpload({ projectId, stageId, onUploaded }: Props) {
       <button
         type="submit"
         disabled={!file || loading}
-        className="bg-blue-600 text-white rounded-lg px-4 py-1.5 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+        className="btn-primary"
+        style={{ fontSize: '0.8rem', padding: '0.4rem 1rem' }}
       >
         {loading ? 'מעלה...' : 'העלה'}
       </button>
-      {error && <p className="text-red-600 text-sm w-full">{error}</p>}
+      {error && <p style={{ color: 'var(--status-issues)', fontSize: '0.8rem', width: '100%', margin: 0 }}>{error}</p>}
     </form>
   )
 }

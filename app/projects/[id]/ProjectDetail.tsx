@@ -2,13 +2,16 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Project, ProjectStage, UserRole, TailIssue, Attachment } from '@/lib/types'
+import { Project, ProjectStage, UserRole, TailIssue, Attachment, StagePulse, Addition, AdditionStage } from '@/lib/types'
 import { StageTimeline } from '@/components/StageTimeline'
 import { ConfirmationToast } from '@/components/ConfirmationToast'
 import { TailIssueForm } from '@/components/TailIssueForm'
 import { TailIssueList } from '@/components/TailIssueList'
+import { AdditionCard } from '@/components/AdditionCard'
+import { AdditionForm } from '@/components/AdditionForm'
+import { DeleteProjectButton } from '@/components/DeleteProjectButton'
 import { formatProjectNumber, formatDate, formatCurrency, PROJECT_STATUS_LABELS, STAGE_STATUS_LABELS } from '@/lib/formatters'
-import { can, FINANCE_ROLES, CREATE_PROJECT_ROLES } from '@/lib/permissions'
+import { can, FINANCE_ROLES, CREATE_PROJECT_ROLES, DELETE_PROJECT_ROLES } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
@@ -24,10 +27,14 @@ interface HistoryEntry {
 interface Props {
   project: Project
   stages: ProjectStage[]
+  pulses: StagePulse[]
+  additions: Addition[]
+  additionStages: AdditionStage[]
   tailIssues: TailIssue[]
   attachments: Attachment[]
   currentUserId: string
   currentUserRole: UserRole
+  canEditProp: boolean
   ownerNames: Record<string, string>
   history: HistoryEntry[]
 }
@@ -44,12 +51,13 @@ const PROJECT_STATUS_BADGE: Record<string, string> = {
   closed: 'badge badge-closed',
 }
 
-export function ProjectDetail({ project, stages, tailIssues, attachments, currentUserId, currentUserRole, ownerNames, history }: Props) {
+export function ProjectDetail({ project, stages, pulses, additions, additionStages, tailIssues, attachments, currentUserId, currentUserRole, canEditProp, ownerNames, history }: Props) {
   const router = useRouter()
   const [toast, setToast] = useState<string | null>(null)
   const [editingName, setEditingName] = useState(false)
   const [nameValue, setNameValue] = useState(project.name)
   const [savingName, setSavingName] = useState(false)
+  const [showAdditionForm, setShowAdditionForm] = useState(false)
   const canEdit = can(currentUserRole, CREATE_PROJECT_ROLES)
 
   function handleStageUpdated(message: string) {
@@ -79,13 +87,13 @@ export function ProjectDetail({ project, stages, tailIssues, attachments, curren
       </Link>
 
       {/* Project header card */}
-      <div className="card metal-card" style={{ padding: '1.75rem', marginBottom: '1.5rem' }}>
+      <div className="card" style={{ padding: '1.75rem', marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{
               fontSize: '0.68rem',
               fontFamily: 'monospace',
-              color: 'var(--gold)',
+              color: 'var(--brand)',
               fontWeight: 600,
               letterSpacing: '0.05em',
               marginBottom: '6px',
@@ -107,7 +115,7 @@ export function ProjectDetail({ project, stages, tailIssues, attachments, curren
                   fontWeight: 900,
                   background: 'transparent',
                   border: 'none',
-                  borderBottom: '2px solid var(--gold)',
+                  borderBottom: '2px solid var(--brand)',
                   color: 'var(--text-primary)',
                   outline: 'none',
                   width: '100%',
@@ -135,6 +143,12 @@ export function ProjectDetail({ project, stages, tailIssues, attachments, curren
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{project.client_name}</span>
+              {project.created_at && (
+                <>
+                  <span style={{ color: 'var(--border-mid)' }}>·</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>נוצר: {formatDate(project.created_at)}</span>
+                </>
+              )}
               {project.planned_delivery_date && (
                 <>
                   <span style={{ color: 'var(--border-mid)' }}>·</span>
@@ -156,7 +170,7 @@ export function ProjectDetail({ project, stages, tailIssues, attachments, curren
               <span className={PROJECT_STATUS_BADGE[project.status]}>{PROJECT_STATUS_LABELS[project.status]}</span>
             </div>
             {openTailCount > 0 && (
-              <span className="badge badge-issues">{openTailCount} זנב פתוח</span>
+              <span className="badge badge-issues">{openTailCount} גמר פתוח</span>
             )}
           </div>
         </div>
@@ -168,13 +182,13 @@ export function ProjectDetail({ project, stages, tailIssues, attachments, curren
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
             gap: '1rem',
-            background: 'var(--bg-deep)',
+            background: 'var(--bg-raised)',
             borderRadius: '10px',
             padding: '1rem 1.25rem',
           }}>
             <div>
               <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>ערך חוזה</p>
-              <p style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--gold-bright)', fontFamily: 'var(--font-display)', margin: 0, lineHeight: 1.1 }}>
+              <p style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--brand)', fontFamily: 'var(--font-display)', margin: 0, lineHeight: 1.1 }}>
                 {formatCurrency(project.contract_value)}
               </p>
             </div>
@@ -192,6 +206,13 @@ export function ProjectDetail({ project, stages, tailIssues, attachments, curren
             {project.description}
           </p>
         )}
+
+        {/* Delete button */}
+        {can(currentUserRole, DELETE_PROJECT_ROLES) && (
+          <div style={{ marginTop: '1rem' }}>
+            <DeleteProjectButton projectId={project.id} projectName={project.name} />
+          </div>
+        )}
       </div>
 
       {/* Stage timeline */}
@@ -199,26 +220,67 @@ export function ProjectDetail({ project, stages, tailIssues, attachments, curren
       <div style={{ marginBottom: '1.5rem' }}>
         <StageTimeline
           stages={stages}
+          pulses={pulses}
           attachments={attachments}
           project={project}
           currentUserId={currentUserId}
           currentUserRole={currentUserRole}
+          canEditProp={canEditProp}
           onStageUpdated={handleStageUpdated}
           onRefresh={() => router.refresh()}
         />
       </div>
 
-      {/* Tail issues */}
-      <SectionTitle>זנבות</SectionTitle>
+      {/* Additions */}
+      <SectionTitle>תוספות</SectionTitle>
+      <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        {additions.length === 0 && !showAdditionForm && (
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>אין תוספות</p>
+        )}
+        {additions.map(addition => (
+          <AdditionCard
+            key={addition.id}
+            addition={addition}
+            stages={additionStages.filter(s => s.addition_id === addition.id)}
+            currentUserRole={currentUserRole}
+            currentUserId={currentUserId}
+            canEditProp={canEditProp}
+            onUpdated={() => router.refresh()}
+          />
+        ))}
+        {can(currentUserRole, FINANCE_ROLES) && (
+          showAdditionForm ? (
+            <AdditionForm
+              projectId={project.id}
+              currentUserId={currentUserId}
+              onCreated={() => { setShowAdditionForm(false); router.refresh() }}
+              onCancel={() => setShowAdditionForm(false)}
+            />
+          ) : (
+            <button className="btn-secondary" onClick={() => setShowAdditionForm(true)} style={{ alignSelf: 'flex-start' }}>
+              + הוסף תוספת
+            </button>
+          )
+        )}
+      </div>
+
+      {/* Tail issues / גמרים */}
+      <SectionTitle>גמרים</SectionTitle>
       <div className="card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
-        <TailIssueList issues={tailIssues} onUpdated={() => router.refresh()} />
+        <TailIssueList
+          issues={tailIssues}
+          attachments={attachments}
+          ownerNames={ownerNames}
+          canEditProp={canEditProp}
+          onUpdated={() => router.refresh()}
+        />
         <div style={{ marginTop: tailIssues.length > 0 ? '1rem' : 0, paddingTop: tailIssues.length > 0 ? '1rem' : 0, borderTop: tailIssues.length > 0 ? '1px solid var(--border-subtle)' : 'none' }}>
-          <TailIssueForm projectId={project.id} onCreated={() => router.refresh()} />
+          {canEditProp && <TailIssueForm projectId={project.id} onCreated={() => router.refresh()} />}
         </div>
       </div>
 
       {/* History */}
-      {history.length > 0 && (
+      {history.length > 0 && can(currentUserRole, FINANCE_ROLES) && (
         <>
           <SectionTitle>היסטוריית שינויים</SectionTitle>
           <div className="card" style={{ padding: '0.5rem 1.25rem', marginBottom: '1.5rem' }}>
@@ -242,7 +304,7 @@ export function ProjectDetail({ project, stages, tailIssues, attachments, curren
                   <span style={{ color: 'var(--text-muted)' }}>←</span>
                   <span style={{ color: 'var(--text-secondary)' }}>{STAGE_STATUS_LABELS[entry.old_status ?? ''] ?? entry.old_status}</span>
                   <span style={{ color: 'var(--text-muted)' }}>→</span>
-                  <span style={{ color: 'var(--gold)', fontWeight: 600 }}>{STAGE_STATUS_LABELS[entry.new_status] ?? entry.new_status}</span>
+                  <span style={{ color: 'var(--brand)', fontWeight: 600 }}>{STAGE_STATUS_LABELS[entry.new_status] ?? entry.new_status}</span>
                 </div>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', flexShrink: 0, display: 'flex', gap: '6px' }}>
                   <span>{ownerNames[entry.changed_by ?? ''] ?? '—'}</span>
@@ -273,7 +335,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
       alignItems: 'center',
       gap: '8px',
     }}>
-      <span style={{ width: '3px', height: '16px', background: 'var(--gold)', borderRadius: '2px', display: 'inline-block' }} />
+      <span style={{ width: '3px', height: '16px', background: 'var(--brand)', borderRadius: '2px', display: 'inline-block' }} />
       {children}
     </h2>
   )

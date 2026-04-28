@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>אמץ אלומיניום — מפרט עיצוב מערכת</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Heebo', sans-serif;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #1a1a2e;
+      background: #fff;
+      padding: 48px;
+      max-width: 860px;
+      margin: 0 auto;
+      direction: rtl;
+    }
+
+    .doc-header {
+      border-bottom: 3px solid #c8a84b;
+      padding-bottom: 24px;
+      margin-bottom: 36px;
+    }
+
+    .doc-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .logo-square {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #c8a84b, #e8c96d);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 900;
+      color: #0d0f14;
+    }
+
+    .logo-text {
+      font-size: 14px;
+      font-weight: 700;
+      color: #555;
+      letter-spacing: 0.02em;
+    }
+
+    h1 {
+      font-size: 30px;
+      font-weight: 900;
+      color: #0d0f14;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .doc-meta {
+      font-size: 12px;
+      color: #888;
+      display: flex;
+      gap: 20px;
+    }
+
+    .doc-meta span::before {
+      content: '· ';
+      color: #c8a84b;
+    }
+    .doc-meta span:first-child::before { content: ''; }
+
+    h2 {
+      font-size: 17px;
+      font-weight: 800;
+      color: #0d0f14;
+      margin: 36px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e8e8e8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h2::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 18px;
+      background: #c8a84b;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #444;
+      margin: 20px 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    p {
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    /* Info boxes */
+    .info-box {
+      background: #faf9f6;
+      border: 1px solid #e8e2d0;
+      border-right: 4px solid #c8a84b;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: #444;
+    }
+
+    .warning-box {
+      background: #fff8f0;
+      border: 1px solid #ffd97d;
+      border-right: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin: 12px 0;
+      font-size: 13px;
+      color: #7a4f00;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 20px;
+      font-size: 13px;
+    }
+
+    th {
+      background: #f0ede4;
+      color: #555;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 9px 12px;
+      text-align: right;
+      border: 1px solid #e0dbd0;
+    }
+
+    td {
+      padding: 8px 12px;
+      border: 1px solid #eee;
+      color: #333;
+      vertical-align: top;
+      text-align: right;
+    }
+
+    tr:nth-child(even) td { background: #faf9f7; }
+
+    td.check { text-align: center; color: #22c55e; font-size: 15px; }
+    td.dash  { text-align: center; color: #ccc; }
+
+    /* Code blocks */
+    pre {
+      background: #1a1a2e;
+      color: #e8e4d8;
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      overflow-x: auto;
+      margin: 10px 0 20px;
+      direction: ltr;
+      text-align: left;
+    }
+
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      background: #f0ede4;
+      color: #7a5c1e;
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+
+    /* Lists */
+    ul, ol {
+      padding-right: 20px;
+      margin: 8px 0 16px;
+    }
+
+    li {
+      margin-bottom: 6px;
+      color: #333;
+    }
+
+    li strong { color: #0d0f14; }
+
+    /* Stage badge */
+    .stage-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #c8a84b;
+      color: #0d0f14;
+      font-size: 11px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    /* Phase blocks */
+    .phase-block {
+      background: #faf9f6;
+      border: 1px solid #e8e2d0;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+
+    .phase-title {
+      font-weight: 700;
+      font-size: 13px;
+      color: #0d0f14;
+      margin-bottom: 6px;
+    }
+
+    .phase-items {
+      font-size: 12.5px;
+      color: #555;
+    }
+
+    /* Footer */
+    .doc-footer {
+      margin-top: 48px;
+      padding-top: 16px;
+      border-top: 1px solid #e8e8e8;
+      font-size: 11px;
+      color: #aaa;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    @media print {
+      body { padding: 28px; }
+      h2 { page-break-after: avoid; }
+      pre { page-break-inside: avoid; }
+      .phase-block { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="doc-header">
+    <div class="doc-logo">
+      <div class="logo-square">א</div>
+      <span class="logo-text">אמץ אלומיניום</span>
+    </div>
+    <h1>מפרט עיצוב מערכת</h1>
+    <div class="doc-meta">
+      <span>גרסה 1.0</span>
+      <span>18 אפריל 2026</span>
+      <span>סטטוס: מאושר לפיתוח</span>
+    </div>
+  </div>
+
+  <!-- 1. סקירה כללית -->
+  <h2>1. סקירה כללית</h2>
+  <p>מערכת ניהול פרויקטים מותאמת אישית למפעל אמץ אלומיניום (12 עובדים). המערכת מספקת נראות מרכזית על כל הפרויקטים, מעקב שלבים עם אחריות ברורה, התראות גבייה אוטומטיות, וניהול "זנבות" (בעיות לאחר מסירה).</p>
+  <div class="warning-box">
+    <strong>מה לא נכלל בגרסה 1:</strong> אינטגרציה עם אופרה, שכר, מלאי, הנהלת חשבונות, מובייל, התראות אימייל/וואטסאפ, דיווח שעות.
+  </div>
+
+  <!-- 2. סטאק -->
+  <h2>2. סטאק טכנולוגי</h2>
+  <table>
+    <thead><tr><th>שכבה</th><th>טכנולוגיה</th></tr></thead>
+    <tbody>
+      <tr><td>Frontend</td><td>Next.js 16 (App Router, React Server Components)</td></tr>
+      <tr><td>Backend / DB</td><td>Supabase (PostgreSQL + RLS + Auth + Storage)</td></tr>
+      <tr><td>Styling</td><td>Tailwind CSS + מערכת CSS Variables (dark industrial-luxe)</td></tr>
+      <tr><td>אחסון קבצים</td><td>Supabase Storage</td></tr>
+      <tr><td>Deploy</td><td>Vercel</td></tr>
+      <tr><td>שפה</td><td>TypeScript</td></tr>
+      <tr><td>דפדפן יעד</td><td>Chrome / Edge על Windows</td></tr>
+    </tbody>
+  </table>
+
+  <!-- 3. משתמשים -->
+  <h2>3. משתמשים ותפקידים</h2>
+  <table>
+    <thead><tr><th>משתמש</th><th>תפקיד</th><th>role בקוד</th></tr></thead>
+    <tbody>
+      <tr><td>איציק</td><td>מנכ"ל — גישה מלאה</td><td><code>developer</code></td></tr>
+      <tr><td>ניר</td><td>אדמין / תמיכה — גישה מלאה</td><td><code>admin</code></td></tr>
+      <tr><td>שלי</td><td>מרכזת הזמנות, מסירות, חשבוניות</td><td><code>coordinator</code></td></tr>
+      <tr><td>נמרוד</td><td>ייצור — שרטוטים, הזמנות חומר</td><td><code>production</code></td></tr>
+      <tr><td>מירי</td><td>כספים — גבייה ותשלומים</td><td><code>finance</code></td></tr>
+      <tr><td>סלאח</td><td>מנהל פרויקטים — מדידות, התקנה, מסירה</td><td><code>field_manager</code></td></tr>
+      <tr><td>יעקב</td><td>מנהל ייצור — פיקוח רצפת ייצור</td><td><code>production_manager</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>טבלת הרשאות</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>הרשאה</th>
+        <th>איציק</th><th>ניר</th><th>שלי</th>
+        <th>נמרוד</th><th>מירי</th><th>סלאח</th><th>יעקב</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>פרויקטים — צפייה</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>פרויקטים — יצירה/עריכה</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="dash">—</td><td class="check">✓</td><td class="dash">—</td></tr>
+      <tr><td>עדכון סטטוס שלב</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="dash">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>הצעת מחיר — העלאת קובץ</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="dash">—</td><td class="dash">—</td><td class="dash">—</td><td class="dash">—</td></tr>
+      <tr><td>נתוני עלות ורווחיות</td><td class="check">✓</td><td class="check">✓</td><td class="dash">—</td><td class="dash">—</td><td class="dash">—</td><td class="dash">—</td><td class="dash">—</td></tr>
+      <tr><td>גבייה ותשלומים</td><td class="check">✓</td><td class="check">✓</td><td class="dash">—</td><td class="dash">—</td><td class="check">✓</td><td class="dash">—</td><td class="dash">—</td></tr>
+      <tr><td>הזמנות חומר</td><td class="check">✓</td><td class="check">✓</td><td class="dash">—</td><td class="check">✓</td><td class="dash">—</td><td class="dash">—</td><td class="dash">—</td></tr>
+      <tr><td>פקודות ייצור</td><td class="check">✓</td><td class="check">✓</td><td class="dash">—</td><td class="check">✓</td><td class="dash">—</td><td class="dash">—</td><td class="check">✓</td></tr>
+      <tr><td>קבצים — העלאה</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="dash">—</td></tr>
+      <tr><td>היסטוריית שינויים</td><td class="check">✓</td><td class="check">✓</td><td class="dash">—</td><td class="dash">—</td><td class="dash">—</td><td class="dash">—</td><td class="dash">—</td></tr>
+      <tr><td>ניהול משתמשים</td><td class="check">✓</td><td class="check">✓</td><td class="dash">—</td><td class="dash">—</td><td class="dash">—</td><td class="dash">—</td><td class="dash">—</td></tr>
+    </tbody>
+  </table>
+  <div class="warning-box">
+    <strong>כללים חשובים:</strong> נתוני עלות ורווחיות והיסטוריית שינויים — גלויים לאיציק וניר בלבד (אכיפה ב-RLS). סלאח מעדכן סטטוס רק בשלבים 3, 6, 7. יעקב ללא גישה לנתונים פיננסיים.
+  </div>
+
+  <!-- 4. מודל נתונים -->
+  <h2>4. מודל נתונים</h2>
+
+  <h3>4.1 projects</h3>
+  <pre>id              uuid        PK, gen_random_uuid()
+project_number  serial      מוצג כ-P-001, P-002...
+name            text        שם הפרויקט
+client_name     text        שם הלקוח
+description     text
+contract_value  numeric     גלוי לאיציק/ניר בלבד (RLS)
+cost_estimate   numeric     גלוי לאיציק/ניר בלבד (RLS)
+planned_delivery_date  date
+actual_delivery_date   date
+status          text        active / delivered_with_issues / closed
+created_by      uuid        FK → auth.users
+created_at      timestamptz
+updated_at      timestamptz</pre>
+
+  <h3>4.2 project_stages</h3>
+  <pre>id           uuid     PK
+project_id   uuid     FK → projects
+stage_number integer  1–7
+stage_name   text
+owner_id     uuid     FK → auth.users
+status       text     pending / in_progress / completed / blocked
+completed_at timestamptz
+notes        text
+billing_pct  integer  5 / 5 / 10 / 40 / 0 / 30 / 10
+updated_by   uuid     FK → auth.users</pre>
+
+  <h3>4.3 stage_history</h3>
+  <pre>id          uuid        PK
+stage_id    uuid        FK → project_stages
+project_id  uuid        FK → projects
+changed_by  uuid        FK → auth.users
+old_status  text
+new_status  text
+note        text
+changed_at  timestamptz</pre>
+  <p style="font-size:12px;color:#888;">גלוי לאיציק/ניר בלבד (RLS).</p>
+
+  <h3>4.4 billing_alerts</h3>
+  <pre>id          uuid     PK
+project_id  uuid     FK → projects
+stage_id    uuid     FK → project_stages
+amount      numeric  contract_value × billing_pct / 100
+status      text     pending / in_progress / done
+handled_by  uuid     FK → auth.users
+created_at  timestamptz</pre>
+
+  <h3>4.5 tail_issues (זנבות)</h3>
+  <pre>id           uuid  PK
+project_id   uuid  FK → projects
+description  text
+reported_by  uuid  FK → auth.users
+assigned_to  uuid  FK → auth.users
+status       text  open / in_progress / resolved
+resolved_at  timestamptz
+created_at   timestamptz</pre>
+
+  <h3>4.6 attachments</h3>
+  <pre>id           uuid  PK
+project_id   uuid  FK → projects
+stage_id     uuid  FK → project_stages (אופציונלי)
+file_name    text
+file_type    text  quote / drawing / delivery_note / invoice / other
+storage_path text
+uploaded_by  uuid  FK → auth.users
+uploaded_at  timestamptz</pre>
+
+  <!-- 5. לוגיקה עסקית -->
+  <h2>5. לוגיקה עסקית</h2>
+
+  <h3>5.1 שלבי פרויקט — סדר קבוע</h3>
+  <table>
+    <thead><tr><th>#</th><th>שלב</th><th>אחראי</th><th>אחוז גבייה</th></tr></thead>
+    <tbody>
+      <tr><td><span class="stage-num">1</span></td><td>חתימה על הסכם</td><td>איציק</td><td>5%</td></tr>
+      <tr><td><span class="stage-num">2</span></td><td>שרטוטים</td><td>נמרוד</td><td>5%</td></tr>
+      <tr><td><span class="stage-num">3</span></td><td>משקוף עיוור</td><td>סלאח</td><td>10%</td></tr>
+      <tr><td><span class="stage-num">4</span></td><td>הזמנת חומר</td><td>נמרוד</td><td>40%</td></tr>
+      <tr><td><span class="stage-num">5</span></td><td>ייצור</td><td>יעקב + נמרוד</td><td>0%</td></tr>
+      <tr><td><span class="stage-num">6</span></td><td>התקנה</td><td>סלאח</td><td>30%</td></tr>
+      <tr><td><span class="stage-num">7</span></td><td>מסירה</td><td>סלאח</td><td>10%</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:12px;color:#888;">בעת יצירת פרויקט — 7 שלבים נוצרים אוטומטית עם owner_id לפי הטבלה.</p>
+
+  <h3>5.2 כלל גבייה אוטומטי</h3>
+  <p>כשמשתמש מסמן שלב כ-<code>completed</code>:</p>
+  <ol>
+    <li>נרשמת רשומה ב-<code>stage_history</code></li>
+    <li>אם <code>billing_pct &gt; 0</code> — נוצרת רשומה ב-<code>billing_alerts</code> עם <code>amount = contract_value × billing_pct / 100</code></li>
+    <li>מירי רואה badge מעודכן בלוח הבקרה (מתרענן בטעינה, לא real-time)</li>
+  </ol>
+  <div class="info-box">שלב 5 (ייצור) — <strong>לא</strong> נוצרת התראת גבייה.</div>
+
+  <h3>5.3 סטטוס פרויקט</h3>
+  <ul>
+    <li><strong>active</strong> — פרויקט בתהליך</li>
+    <li><strong>delivered_with_issues</strong> — שלב 7 הושלם אך יש tail_issues פתוחים</li>
+    <li><strong>closed</strong> — כל השלבים הושלמו + אין tail_issues פתוחים → מעבר אוטומטי</li>
+  </ul>
+
+  <!-- 6. מסכים -->
+  <h2>6. מסכים</h2>
+
+  <div class="phase-block">
+    <div class="phase-title">6.1 לוח בקרה ראשי (כולם)</div>
+    <div class="phase-items">כרטיסיות פרויקטים עם צבע סטטוס · פרויקטים עם זנב פתוח בראש הרשימה · פילטרים: סטטוס, אחראי, תאריך מסירה · Badge התראות גבייה (מירי/איציק/ניר בלבד) · כפתור "פרויקט חדש"</div>
+  </div>
+
+  <div class="phase-block">
+    <div class="phase-title">6.2 דף פרויקט מלא</div>
+    <div class="phase-items">כותרת: שם + מספר (P-001) + לקוח + תאריך מסירה · ערך חוזה ועלות מוערכת (איציק/ניר בלבד) · ציר זמן 7 שלבים עם accordion להערות וקבצים · כפתור "סיים שלב" לאחראי השלב · קטע זנבות · היסטוריית שינויים (איציק/ניר בלבד)</div>
+  </div>
+
+  <div class="phase-block">
+    <div class="phase-title">6.3 מסך גבייה (מירי)</div>
+    <div class="phase-items">רשימת billing_alerts ממוינת: pending ראשון · לכל התראה: שם פרויקט, שלב, סכום, תאריך, כפתורי "בטיפול" / "טופל" · סיכום: סה"כ ממתין / סה"כ טופל החודש</div>
+  </div>
+
+  <div class="phase-block">
+    <div class="phase-title">6.4 מסך ייצור (נמרוד + יעקב)</div>
+    <div class="phase-items">פרויקטים בשלבים 2, 4, 5 · שלב נוכחי, אחראי, הערות, קישור לקבצי שרטוטים · כפתור עדכון סטטוס שלב</div>
+  </div>
+
+  <div class="phase-block">
+    <div class="phase-title">6.5 מסך שטח (סלאח)</div>
+    <div class="phase-items">פרויקטים שסלאח הוא האחראי הנוכחי · עדכון שלבים 3, 6, 7 · העלאת קבצים · כפתור "פתח בעיית זנב"</div>
+  </div>
+
+  <div class="phase-block">
+    <div class="phase-title">6.6 מסך ניהול (איציק + ניר)</div>
+    <div class="phase-items">כל הפרויקטים כולל ערך חוזה ורווחיות · היסטוריית שינויים מלאה · ניהול משתמשים · סיכום חודשי</div>
+  </div>
+
+  <!-- 7. סדר בנייה -->
+  <h2>7. סדר בנייה</h2>
+
+  <div class="phase-block">
+    <div class="phase-title">שלב א — תשתית</div>
+    <div class="phase-items">Next.js + Supabase + TypeScript + Tailwind · יצירת טבלאות עם RLS · Supabase Auth · Middleware להפניה ל-login · טבלת user_profiles עם role</div>
+  </div>
+  <div class="phase-block">
+    <div class="phase-title">שלב ב — ניהול פרויקטים</div>
+    <div class="phase-items">יצירת פרויקט + 7 שלבים אוטומטיים · דף פרויקט עם ציר זמן · עדכון סטטוס שלב + trigger ל-stage_history · Trigger אוטומטי ל-billing_alerts</div>
+  </div>
+  <div class="phase-block">
+    <div class="phase-title">שלב ג — לוח בקרה</div>
+    <div class="phase-items">Dashboard עם כרטיסיות · צביעה לפי סטטוס · פילטרים · Badge התראות גבייה</div>
+  </div>
+  <div class="phase-block">
+    <div class="phase-title">שלב ד — קבצים וזנבות</div>
+    <div class="phase-items">העלאת קבצים ל-Supabase Storage · הצגת קבצים לפי סוג · יצירת זנב + עדכון סטטוס פרויקט · התראות זנב</div>
+  </div>
+  <div class="phase-block">
+    <div class="phase-title">שלב ה — מסכים ייעודיים</div>
+    <div class="phase-items">מסך גבייה · מסך ייצור · מסך שטח · מסך ניהול</div>
+  </div>
+  <div class="phase-block">
+    <div class="phase-title">שלב ו — אבטיפוס ובדיקות</div>
+    <div class="phase-items">הצגה לאיציק ושלי לאיסוף משוב · תיקונים · פרסום לכלל המשתמשים</div>
+  </div>
+
+  <!-- 8. הנחיות פיתוח -->
+  <h2>8. הנחיות פיתוח</h2>
+
+  <h3>8.1 Row Level Security</h3>
+  <pre>CREATE POLICY "finance_only" ON projects
+  FOR SELECT USING (
+    auth.uid() IN (SELECT id FROM user_profiles WHERE role IN ('admin','developer'))
+  );</pre>
+
+  <h3>8.2 שפה וממשק</h3>
+  <ul>
+    <li>ממשק מלא בעברית, RTL</li>
+    <li>הודעות שגיאה בעברית</li>
+    <li>שדות טכניים (IDs, paths) — אנגלית מותרת</li>
+  </ul>
+
+  <h3>8.3 UX</h3>
+  <ul>
+    <li>לאחר עדכון סטטוס — confirmation ברור</li>
+    <li>כפתורי פעולה — גלויים רק לבעלי הרשאה</li>
+    <li>טעינה — skeleton screens (לא spinner ריק)</li>
+    <li>Validation בטפסים — בעברית ברורה</li>
+  </ul>
+
+  <h3>8.4 Supabase Storage</h3>
+  <ul>
+    <li>Bucket: <code>project-attachments</code></li>
+    <li>Path: <code>{project_id}/{stage_id?}/{file_name}</code></li>
+    <li>קריאה: משתמשים מחוברים בלבד · כתיבה: לפי RLS</li>
+  </ul>
+
+  <!-- 9. גרסה 2 -->
+  <h2>9. גרסה 2 — נדחה במכוון</h2>
+  <ul>
+    <li>תמיכת מובייל</li>
+    <li>Real-time notifications</li>
+    <li>דיווח שעות (time_entries)</li>
+    <li>התראות אימייל / וואטסאפ</li>
+    <li>כל שינוי דרישה במהלך הפיתוח — מתועד ונדחה לגרסה 2</li>
+  </ul>
+
+  <div class="doc-footer">
+    <span>אמץ אלומיניום — מסמך פנימי</span>
+    <span>אפריל 2026</span>
+  </div>
+
+</body>
+</html>

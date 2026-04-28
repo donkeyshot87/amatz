@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stage Drill-Down Design — Amatz Aluminum</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #1a1a2e;
+      background: #fff;
+      padding: 48px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .doc-header {
+      border-bottom: 3px solid #c8a84b;
+      padding-bottom: 24px;
+      margin-bottom: 36px;
+    }
+
+    .doc-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .logo-square {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #c8a84b, #e8c96d);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 900;
+      color: #0d0f14;
+    }
+
+    .logo-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: #555;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #0d0f14;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .doc-meta {
+      font-size: 12px;
+      color: #888;
+    }
+
+    /* Sections */
+    h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0d0f14;
+      margin: 32px 0 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #e8e8e8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h2::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 16px;
+      background: #c8a84b;
+      border-radius: 2px;
+    }
+
+    h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: #444;
+      margin: 20px 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    p {
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    /* Intro boxes */
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .meta-box {
+      background: #f8f7f4;
+      border: 1px solid #e8e4d8;
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+
+    .meta-box-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #c8a84b;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .meta-box-value {
+      font-size: 13px;
+      color: #333;
+      line-height: 1.5;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 20px;
+      font-size: 13px;
+    }
+
+    th {
+      background: #f0ede4;
+      color: #555;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 8px 12px;
+      text-align: left;
+      border: 1px solid #e0dbd0;
+    }
+
+    td {
+      padding: 8px 12px;
+      border: 1px solid #eee;
+      color: #333;
+      vertical-align: top;
+    }
+
+    tr:nth-child(even) td {
+      background: #faf9f7;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      background: #f0ede4;
+      color: #7a5c1e;
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+
+    /* Lists */
+    ul, ol {
+      padding-left: 20px;
+      margin: 8px 0 16px;
+    }
+
+    li {
+      margin-bottom: 6px;
+      color: #333;
+    }
+
+    li strong {
+      color: #0d0f14;
+    }
+
+    /* File change blocks */
+    .file-block {
+      background: #fafaf8;
+      border: 1px solid #e8e4d8;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .file-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      color: #7a5c1e;
+      background: #f0ede4;
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 6px;
+    }
+
+    .file-desc {
+      font-size: 13px;
+      color: #444;
+      line-height: 1.5;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-right: 6px;
+      margin-bottom: 8px;
+    }
+
+    .tag-modified { background: #fff3cd; color: #856404; border: 1px solid #ffd97d; }
+    .tag-created  { background: #d1f5e0; color: #186a3b; border: 1px solid #a3e4bb; }
+
+    /* Footer */
+    .doc-footer {
+      margin-top: 48px;
+      padding-top: 16px;
+      border-top: 1px solid #e8e8e8;
+      font-size: 11px;
+      color: #aaa;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    @media print {
+      body { padding: 32px; }
+      h2 { page-break-after: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="doc-header">
+    <div class="doc-logo">
+      <div class="logo-square">א</div>
+      <span class="logo-text">Amatz Aluminum</span>
+    </div>
+    <h1>Stage Drill-Down Design</h1>
+    <div class="doc-meta">Technical Specification · April 2026</div>
+  </div>
+
+  <div class="meta-grid">
+    <div class="meta-box">
+      <div class="meta-box-label">Goal</div>
+      <div class="meta-box-value">Each stage in the project timeline becomes an expandable accordion with role-based visibility, free-text notes, and stage-scoped file attachments.</div>
+    </div>
+    <div class="meta-box">
+      <div class="meta-box-label">Architecture</div>
+      <div class="meta-box-value">Pure UI change — no DB schema changes required. <code>notes</code> and <code>stage_id</code> already exist.</div>
+    </div>
+    <div class="meta-box">
+      <div class="meta-box-label">Tech Stack</div>
+      <div class="meta-box-value">Next.js App Router · React · Supabase · TypeScript · Custom CSS</div>
+    </div>
+    <div class="meta-box">
+      <div class="meta-box-label">DB Changes</div>
+      <div class="meta-box-value">None. <code>project_stages.notes</code> and <code>attachments.stage_id</code> already existed.</div>
+    </div>
+  </div>
+
+  <h2>Role → Visible Stages</h2>
+  <table>
+    <thead>
+      <tr><th>Role</th><th>Stages with drill-down</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>developer, admin</td><td>1, 2, 3, 4, 5, 6, 7</td></tr>
+      <tr><td>coordinator</td><td>1, 2, 3, 4, 5, 6, 7</td></tr>
+      <tr><td>production, production_manager</td><td>2, 4, 5</td></tr>
+      <tr><td>field_manager</td><td>3, 6, 7</td></tr>
+      <tr><td>finance</td><td>1</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:12px;color:#888;">Stages the user cannot view show no expand indicator and clicking does nothing.</p>
+
+  <h2>Panel Content</h2>
+  <ol>
+    <li><strong>Notes</strong> — inline editable free-text field, saved to <code>project_stages.notes</code> on blur. Saving/saved indicators shown inline.</li>
+    <li><strong>Files</strong> — list of attachments filtered by <code>stage_id</code>, plus an upload button that tags the file to this stage.</li>
+    <li><strong>Sensitive data</strong> (stage 1 only, finance roles) — contract value and cost estimate pulled from the project record.</li>
+  </ol>
+
+  <h2>Files Changed</h2>
+
+  <h3><span class="tag tag-modified">Modified</span></h3>
+
+  <div class="file-block">
+    <div class="file-name">lib/permissions.ts</div>
+    <div class="file-desc">Added <code>canViewStage(role, stageNumber): boolean</code> and <code>canCompleteStage(role, stageNumber): boolean</code></div>
+  </div>
+  <div class="file-block">
+    <div class="file-name">components/StageTimeline.tsx</div>
+    <div class="file-desc">Each stage row is an accordion. Passes <code>attachments</code> filtered by <code>stage_id</code> into <code>StagePanel</code>. Passes <code>project</code> for stage-1 finance data.</div>
+  </div>
+  <div class="file-block">
+    <div class="file-name">app/projects/[id]/ProjectDetail.tsx</div>
+    <div class="file-desc">Passes <code>attachments</code> and <code>project</code> into <code>StageTimeline</code>.</div>
+  </div>
+  <div class="file-block">
+    <div class="file-name">app/field/page.tsx</div>
+    <div class="file-desc">Groups stages by project, fetches attachments, passes to <code>FieldStageCard</code>.</div>
+  </div>
+  <div class="file-block">
+    <div class="file-name">app/production/page.tsx</div>
+    <div class="file-desc">Same as field. Includes stage 2 (שרטוטים) in addition to stages 4 and 5.</div>
+  </div>
+
+  <h3><span class="tag tag-created">Created</span></h3>
+
+  <div class="file-block">
+    <div class="file-name">components/StagePanel.tsx</div>
+    <div class="file-desc">Client component: notes editor + saving indicator + file list + file upload + optional finance fields (stage 1, finance roles).</div>
+  </div>
+  <div class="file-block">
+    <div class="file-name">components/FieldStageCard.tsx</div>
+    <div class="file-desc">Client component shared by <code>/field</code> and <code>/production</code>. Shows all stages for a project as expandable rows. Each row has inline status select (for authorized users) + <code>StagePanel</code> when open. Shows <code>ConfirmationToast</code> on status update.</div>
+  </div>
+  <div class="file-block">
+    <div class="file-name">components/StatusFilterBar.tsx</div>
+    <div class="file-desc">Pill filter bar for status selection (pending, in_progress, done, etc.) used on <code>/field</code> and <code>/production</code>.</div>
+  </div>
+
+  <h2>Behavior Details</h2>
+  <ul>
+    <li><strong>Accordion:</strong> Multiple stages can be open simultaneously; default all closed.</li>
+    <li><strong>Notes save:</strong> On blur. No explicit save button. <code>savedNotes</code> state tracks last-saved value to prevent redundant DB writes.</li>
+    <li><strong>File upload:</strong> Existing <code>FileUpload</code> component reused, passing <code>stageId</code> so the attachment is tagged to the stage.</li>
+    <li><strong>File list:</strong> Existing <code>FileList</code> component reused, filtered to <code>stage_id</code>.</li>
+  </ul>
+
+  <h2>Screens Using Stage Drill-Down</h2>
+  <table>
+    <thead>
+      <tr><th>Screen</th><th>Component</th><th>Stages shown</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>/projects/[id]</code></td><td><code>StageTimeline</code> + <code>StagePanel</code></td><td>All 7 stages (role-gated)</td></tr>
+      <tr><td><code>/field</code></td><td><code>FieldStageCard</code></td><td>3, 6, 7</td></tr>
+      <tr><td><code>/production</code></td><td><code>FieldStageCard</code></td><td>2, 4, 5</td></tr>
+    </tbody>
+  </table>
+
+  <div class="doc-footer">
+    <span>Amatz Aluminum — Internal Technical Specification</span>
+    <span>April 2026</span>
+  </div>
+
+</body>
+</html>

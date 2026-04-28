@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { StatusFilterBar } from '@/components/StatusFilterBar'
+import { FilterBar } from '@/components/FilterBar'
 import { FieldStageCard } from '@/components/FieldStageCard'
 import { UserRole } from '@/lib/types'
 import Link from 'next/link'
@@ -9,13 +9,15 @@ const FIELD_ROLES = ['developer', 'admin', 'field_manager']
 const DEFAULT_STATUSES = ['pending', 'in_progress']
 
 interface Props {
-  searchParams: Promise<{ s?: string | string[] }>
+  searchParams: Promise<{ s?: string | string[]; q?: string; sort?: string }>
 }
 
 export default async function FieldPage({ searchParams }: Props) {
-  const { s } = await searchParams
+  const { s, q, sort } = await searchParams
   const raw: string[] = s ? (Array.isArray(s) ? s : [s]) : DEFAULT_STATUSES
   const selected: string[] = raw.includes('__none__') ? [] : raw
+  const searchQuery = q ?? ''
+  const sortValue = sort ?? 'created_desc'
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -67,7 +69,7 @@ export default async function FieldPage({ searchParams }: Props) {
         letterSpacing: '-0.02em',
       }}>שטח</h1>
 
-      <StatusFilterBar selected={selected} />
+      <FilterBar selected={selected} searchQuery={searchQuery} sortValue={sortValue} />
 
       {grouped.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-muted)' }}>

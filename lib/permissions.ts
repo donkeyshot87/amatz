@@ -8,6 +8,7 @@ export const UPDATE_STAGE_ROLES: UserRole[] = ['developer', 'admin', 'coordinato
 export const UPLOAD_FILE_ROLES: UserRole[] = ['developer', 'admin', 'coordinator', 'production', 'finance', 'field_manager']
 export const UPLOAD_QUOTE_ROLES: UserRole[] = ['developer', 'admin', 'coordinator']
 export const USER_MGMT_ROLES: UserRole[] = ['developer', 'admin']
+export const DELETE_PROJECT_ROLES: UserRole[] = ['developer', 'admin']
 
 export function can(role: UserRole | undefined | null, permission: UserRole[]): boolean {
   if (!role) return false

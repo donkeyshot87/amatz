@@ -66,7 +66,7 @@ export default async function AdminPage() {
           </div>
           <div className="card" style={{ padding: '1.25rem 1.5rem' }}>
             <p style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>גבייה שהתקבלה החודש</p>
-            <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--gold-bright)', fontFamily: 'var(--font-display)', margin: 0, lineHeight: 1.1 }}>{formatCurrency(totalCollectedMonth)}</p>
+            <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--brand)', fontFamily: 'var(--font-display)', margin: 0, lineHeight: 1.1 }}>{formatCurrency(totalCollectedMonth)}</p>
           </div>
         </div>
       </AdminSection>
@@ -85,7 +85,7 @@ export default async function AdminPage() {
             <tbody>
               {(projects ?? []).map((p, i) => (
                 <tr key={p.id} style={{ borderBottom: i < (projects?.length ?? 0) - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
-                  <td style={{ padding: '0.75rem 1rem', fontFamily: 'monospace', color: 'var(--gold)', fontSize: '0.72rem', fontWeight: 600 }}>
+                  <td style={{ padding: '0.75rem 1rem', fontFamily: 'monospace', color: 'var(--brand)', fontSize: '0.72rem', fontWeight: 600 }}>
                     {formatProjectNumber(p.project_number)}
                   </td>
                   <td style={{ padding: '0.75rem 1rem' }}>
@@ -94,7 +94,7 @@ export default async function AdminPage() {
                     </Link>
                   </td>
                   <td style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)' }}>{p.client_name}</td>
-                  <td style={{ padding: '0.75rem 1rem', color: 'var(--gold-bright)', fontWeight: 600 }}>{formatCurrency(p.contract_value)}</td>
+                  <td style={{ padding: '0.75rem 1rem', color: 'var(--brand)', fontWeight: 600 }}>{formatCurrency(p.contract_value)}</td>
                   <td style={{ padding: '0.75rem 1rem' }}>
                     <span className={PROJECT_STATUS_BADGE[p.status] ?? 'badge badge-closed'}>
                       {PROJECT_STATUS_LABELS[p.status]}
@@ -136,7 +136,7 @@ function AdminSection({ title, children }: { title: string; children: React.Reac
         alignItems: 'center',
         gap: '8px',
       }}>
-        <span style={{ width: '3px', height: '16px', background: 'var(--gold)', borderRadius: '2px', display: 'inline-block' }} />
+        <span style={{ width: '3px', height: '16px', background: 'var(--brand)', borderRadius: '2px', display: 'inline-block' }} />
         {title}
       </h2>
       {children}

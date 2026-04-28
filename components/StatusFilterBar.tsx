@@ -5,8 +5,8 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 const OPTIONS = [
   { value: 'pending', label: 'ממתין' },
   { value: 'in_progress', label: 'בתהליך' },
-  { value: 'blocked', label: 'חסום' },
   { value: 'completed', label: 'הושלם' },
+  { value: 'blocked', label: 'חסום' },
 ]
 
 export function StatusFilterBar({ selected }: { selected: string[] }) {
@@ -41,9 +41,9 @@ export function StatusFilterBar({ selected }: { selected: string[] }) {
               borderRadius: '999px',
               fontSize: '0.8rem',
               fontWeight: isActive ? 600 : 500,
-              background: isActive ? 'var(--gold)' : 'var(--bg-card)',
+              background: isActive ? 'var(--brand)' : 'var(--bg-card)',
               color: isActive ? 'var(--text-inverse)' : 'var(--text-secondary)',
-              border: `1px solid ${isActive ? 'var(--gold)' : 'var(--border-subtle)'}`,
+              border: `1px solid ${isActive ? 'var(--brand)' : 'var(--border-subtle)'}`,
               cursor: 'pointer',
               transition: 'all 0.15s',
               fontFamily: 'var(--font-body)',

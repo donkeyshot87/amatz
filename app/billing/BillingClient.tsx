@@ -96,7 +96,7 @@ export function BillingClient({ alerts, totalPending, totalDoneMonth, currentUse
         {alerts.map(alert => (
           <div
             key={alert.id}
-            className="card metal-card"
+            className="card"
             style={{
               padding: '1.25rem 1.5rem',
               opacity: alert.status === 'done' ? 0.55 : 1,
@@ -122,7 +122,7 @@ export function BillingClient({ alerts, totalPending, totalDoneMonth, currentUse
               </div>
 
               <div style={{ textAlign: 'left', flexShrink: 0 }}>
-                <p style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--gold-bright)', fontFamily: 'var(--font-display)', margin: '0 0 0.75rem', lineHeight: 1.1 }}>
+                <p style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--brand)', fontFamily: 'var(--font-display)', margin: '0 0 0.75rem', lineHeight: 1.1 }}>
                   {formatCurrency(alert.amount)}
                 </p>
                 <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>

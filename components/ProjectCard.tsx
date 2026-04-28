@@ -20,7 +20,7 @@ export function ProjectCard({ project }: Props) {
   return (
     <Link href={`/projects/${project.id}`} className="project-card-link">
       <div
-        className="card metal-card project-card"
+        className="card project-card"
         style={{ borderRight: `3px solid ${config.accent}` }}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem', marginBottom: '0.75rem' }}>
@@ -28,7 +28,7 @@ export function ProjectCard({ project }: Props) {
             <p style={{
               fontSize: '0.65rem',
               fontFamily: 'monospace',
-              color: 'var(--gold)',
+              color: 'var(--brand)',
               fontWeight: 600,
               letterSpacing: '0.05em',
               marginBottom: '4px',
@@ -60,7 +60,7 @@ export function ProjectCard({ project }: Props) {
             </p>
           </div>
           <span className={hasOpenTails ? 'badge badge-issues' : config.badge} style={{ flexShrink: 0 }}>
-            {hasOpenTails ? `זנב (${project.open_tail_issues})` : PROJECT_STATUS_LABELS[project.status]}
+            {hasOpenTails ? `גמרים (${project.open_tail_issues})` : PROJECT_STATUS_LABELS[project.status]}
           </span>
         </div>
 
@@ -76,6 +76,9 @@ export function ProjectCard({ project }: Props) {
               מסירה: {formatDate(project.planned_delivery_date)}
             </p>
           )}
+          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+            נוצר: {formatDate(project.created_at)}
+          </p>
         </div>
       </div>
     </Link>
