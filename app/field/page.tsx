@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { FilterBar } from '@/components/FilterBar'
 import { FieldStageCard } from '@/components/FieldStageCard'
-import { UserRole } from '@/lib/types'
+import { StagePulse, UserRole } from '@/lib/types'
 import Link from 'next/link'
 
 const FIELD_ROLES = ['developer', 'admin', 'field_manager']
@@ -28,11 +28,12 @@ export default async function FieldPage({ searchParams }: Props) {
 
   const isAdmin = ['developer', 'admin'].includes(profile?.role ?? '')
 
+  const ALL_STATUSES = ['pending', 'in_progress', 'completed', 'blocked']
   let stagesQuery = supabase
     .from('project_stages')
     .select(`*, projects(id, name, project_number, client_name, contract_value, cost_estimate)`)
     .in('stage_number', [3, 6, 7])
-    .in('status', selected.length > 0 ? selected : ['pending'])
+    .in('status', selected.length > 0 ? selected : ALL_STATUSES)
     .order('stage_number', { ascending: true })
 
   if (!isAdmin) stagesQuery = stagesQuery.eq('owner_id', user.id)
@@ -46,13 +47,25 @@ export default async function FieldPage({ searchParams }: Props) {
     if (!projectMap.has(pid)) projectMap.set(pid, { project: stage.projects, stages: [] })
     projectMap.get(pid)!.stages.push(stage)
   }
-  const grouped = Array.from(projectMap.values())
+  let grouped = Array.from(projectMap.values())
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase()
+    grouped = grouped.filter(({ project }) =>
+      project?.name?.toLowerCase().includes(q) || project?.client_name?.toLowerCase().includes(q)
+    )
+  }
 
-  // Fetch attachments for all relevant project_ids
   const projectIds = Array.from(projectMap.keys())
-  const { data: attachments } = projectIds.length > 0
-    ? await supabase.from('attachments').select('*').in('project_id', projectIds)
-    : { data: [] }
+  const stageIds = (stages ?? []).filter((s: any) => [3, 5, 6].includes(s.stage_number)).map((s: any) => s.id)
+
+  const [{ data: attachments }, { data: pulses }] = await Promise.all([
+    projectIds.length > 0
+      ? supabase.from('attachments').select('*').in('project_id', projectIds)
+      : { data: [] },
+    stageIds.length > 0
+      ? supabase.from('stage_pulses').select('*').in('stage_id', stageIds).order('pulse_number')
+      : { data: [] },
+  ])
 
   return (
     <div style={{ maxWidth: '860px', margin: '0 auto', padding: '2rem 1.5rem' }}>
@@ -82,6 +95,7 @@ export default async function FieldPage({ searchParams }: Props) {
               key={project.id}
               project={project}
               stages={projectStages}
+              pulses={(pulses ?? []) as StagePulse[]}
               attachments={(attachments ?? []).filter((a: any) => a.project_id === project.id)}
               currentUserId={user.id}
               currentUserRole={(profile?.role ?? 'field_manager') as UserRole}

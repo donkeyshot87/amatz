@@ -6,7 +6,7 @@ import { Attachment, Project, UserRole } from '@/lib/types'
 import { FileUpload } from './FileUpload'
 import { FileList } from './FileList'
 import { formatCurrency } from '@/lib/formatters'
-import { can, FINANCE_ROLES } from '@/lib/permissions'
+import { can, FINANCE_ROLES, canUpdateStage } from '@/lib/permissions'
 
 interface Props {
   stageId: string
@@ -18,24 +18,28 @@ interface Props {
   allStages: Array<{ id: string; stage_number: number; stage_name: string; billing_pct: number }>
   currentUserRole: UserRole
   canEditProp: boolean
+  isAdditionStage?: boolean
   onUpdated: () => void
 }
 
 export function StagePanel({
   stageId, projectId, stageNumber, initialNotes,
-  attachments, project, allStages, currentUserRole, canEditProp, onUpdated,
+  attachments, project, allStages, currentUserRole, canEditProp, isAdditionStage, onUpdated,
 }: Props) {
   const [notes, setNotes] = useState(initialNotes ?? '')
   const [savedNotes, setSavedNotes] = useState(initialNotes ?? '')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  const canEditThisStage = canEditProp && canUpdateStage(currentUserRole, stageNumber)
+
   async function saveNotes() {
     const trimmed = notes.trim()
     if (trimmed === savedNotes.trim()) return
     setSaving(true)
     const supabase = createClient()
-    await supabase.from('project_stages').update({ notes: trimmed || null }).eq('id', stageId)
+    const table = isAdditionStage ? 'addition_stages' : 'project_stages'
+    await supabase.from(table).update({ notes: trimmed || null }).eq('id', stageId)
     setSavedNotes(trimmed)
     setSaving(false)
     setSaved(true)
@@ -54,7 +58,7 @@ export function StagePanel({
           {saving && <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>שומר...</span>}
           {saved && !saving && <span style={{ fontSize: '0.7rem', color: 'var(--status-done)' }}>✓ נשמר</span>}
         </div>
-        {canEditProp ? (
+        {canEditThisStage ? (
           <textarea
             value={notes}
             onChange={e => setNotes(e.target.value)}
@@ -70,13 +74,13 @@ export function StagePanel({
         )}
       </div>
 
-      {/* Finance data — stage 1 only, finance roles */}
-      {stageNumber === 1 && can(currentUserRole, FINANCE_ROLES) && (
+      {/* Finance data — stage 1 only, finance roles, project stages only */}
+      {stageNumber === 1 && !isAdditionStage && can(currentUserRole, FINANCE_ROLES) && (
         <ContractEditor
           projectId={projectId}
           initialContractValue={project.contract_value}
           stages={allStages}
-          canEdit={canEditProp}
+          canEdit={canEditThisStage}
           onUpdated={onUpdated}
         />
       )}
@@ -87,9 +91,14 @@ export function StagePanel({
           קבצים
         </p>
         <FileList attachments={attachments} />
-        {canEditProp && (
+        {canEditThisStage && (
           <div style={{ marginTop: '0.75rem' }}>
-            <FileUpload projectId={projectId} stageId={stageId} onUploaded={onUpdated} />
+            <FileUpload
+              projectId={projectId}
+              stageId={isAdditionStage ? undefined : stageId}
+              additionStageId={isAdditionStage ? stageId : undefined}
+              onUploaded={onUpdated}
+            />
           </div>
         )}
       </div>

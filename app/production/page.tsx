@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { formatProjectNumber, formatDate } from '@/lib/formatters'
 import { FilterBar } from '@/components/FilterBar'
 import { FieldStageCard } from '@/components/FieldStageCard'
-import { UserRole } from '@/lib/types'
+import { StagePulse, UserRole } from '@/lib/types'
 import Link from 'next/link'
 
 const PRODUCTION_ROLES = ['developer', 'admin', 'production', 'production_manager']
@@ -35,19 +35,33 @@ export default async function ProductionPage({ searchParams }: Props) {
     .order('planned_delivery_date', { ascending: true })
 
   const productionProjects = (projects ?? [])
+    .filter(p => {
+      if (!searchQuery) return true
+      const q = searchQuery.toLowerCase()
+      return p.name?.toLowerCase().includes(q) || p.client_name?.toLowerCase().includes(q)
+    })
     .map(p => {
       const allStages = (p as any).project_stages as any[]
       const relevantStages = allStages
-        .filter((s: any) => PRODUCTION_STAGES.includes(s.stage_number) && selected.includes(s.status))
+        .filter((s: any) => PRODUCTION_STAGES.includes(s.stage_number) && (selected.length === 0 || selected.includes(s.status)))
         .sort((a: any, b: any) => a.stage_number - b.stage_number)
       return { ...p, relevantStages }
     })
     .filter(p => p.relevantStages.length > 0)
 
   const projectIds = productionProjects.map(p => p.id)
-  const { data: attachments } = projectIds.length > 0
-    ? await supabase.from('attachments').select('*').in('project_id', projectIds)
-    : { data: [] }
+  const pulseStageIds = productionProjects.flatMap(p =>
+    p.relevantStages.filter((s: any) => [3, 5, 6].includes(s.stage_number)).map((s: any) => s.id)
+  )
+
+  const [{ data: attachments }, { data: pulses }] = await Promise.all([
+    projectIds.length > 0
+      ? supabase.from('attachments').select('*').in('project_id', projectIds)
+      : { data: [] },
+    pulseStageIds.length > 0
+      ? supabase.from('stage_pulses').select('*').in('stage_id', pulseStageIds).order('pulse_number')
+      : { data: [] },
+  ])
 
   return (
     <div style={{ maxWidth: '960px', margin: '0 auto', padding: '2rem 1.5rem' }}>
@@ -77,6 +91,7 @@ export default async function ProductionPage({ searchParams }: Props) {
               key={project.id}
               project={project}
               stages={project.relevantStages}
+              pulses={(pulses ?? []) as StagePulse[]}
               attachments={(attachments ?? []).filter((a: any) => a.project_id === project.id)}
               currentUserId={user.id}
               currentUserRole={(profile?.role ?? 'production') as UserRole}

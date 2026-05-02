@@ -32,6 +32,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     ? await supabase.from('addition_stages').select('*').in('addition_id', additionIds)
     : { data: [] }
 
+  const additionStageIds = (additionStages ?? []).map((s: any) => s.id)
+  const { data: additionPulses } = additionStageIds.length > 0
+    ? await supabase.from('stage_pulses').select('*').in('addition_stage_id', additionStageIds).order('pulse_number')
+    : { data: [] }
+
   return (
     <ProjectDetail
       project={project}
@@ -39,6 +44,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       pulses={pulses ?? []}
       additions={additions ?? []}
       additionStages={additionStages ?? []}
+      additionPulses={additionPulses ?? []}
       tailIssues={tailIssues ?? []}
       attachments={attachments ?? []}
       currentUserId={user.id}

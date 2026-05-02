@@ -75,7 +75,6 @@ export default async function DashboardPage({ searchParams }: Props) {
   }
 
   enriched = applySort(enriched, sortValue)
-  enriched.sort((a, b) => (b.open_tail_issues > 0 ? 1 : 0) - (a.open_tail_issues > 0 ? 1 : 0))
 
   let pendingBillingCount = 0
   if (can(role, BILLING_ROLES)) {

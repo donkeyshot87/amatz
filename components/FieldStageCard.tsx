@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Attachment, UserRole, StageStatus } from '@/lib/types'
+import { Attachment, StagePulse, UserRole, StageStatus } from '@/lib/types'
 import { STAGE_STATUS_LABELS } from '@/lib/formatters'
 import { StagePanel } from './StagePanel'
+import { PulsePanel } from './PulsePanel'
 import { ConfirmationToast } from './ConfirmationToast'
 import { createClient } from '@/lib/supabase/client'
 import { canCompleteStage } from '@/lib/permissions'
@@ -31,6 +32,7 @@ interface Project {
 interface Props {
   project: Project
   stages: Stage[]
+  pulses: StagePulse[]
   attachments: Attachment[]
   currentUserId: string
   currentUserRole: UserRole
@@ -50,7 +52,9 @@ const STATUS_OPTIONS: { value: StageStatus; label: string }[] = [
   { value: 'blocked', label: 'חסום' },
 ]
 
-export function FieldStageCard({ project, stages, attachments, currentUserId, currentUserRole }: Props) {
+const PULSE_STAGES = [3, 5, 6]
+
+export function FieldStageCard({ project, stages, pulses, attachments, currentUserId, currentUserRole }: Props) {
   const router = useRouter()
   const [openStageId, setOpenStageId] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
@@ -96,6 +100,8 @@ export function FieldStageCard({ project, stages, attachments, currentUserId, cu
             const isOwner = stage.owner_id === currentUserId
             const canEdit = canCompleteStage(currentUserRole, isOwner, stage.stage_number)
             const stageAttachments = attachments.filter(a => a.stage_id === stage.id)
+            const stagePulses = pulses.filter(p => p.stage_id === stage.id)
+            const isPulseStage = PULSE_STAGES.includes(stage.stage_number)
             const isCompleted = stage.status === 'completed'
 
             return (
@@ -182,18 +188,32 @@ export function FieldStageCard({ project, stages, attachments, currentUserId, cu
                 {/* Expanded panel */}
                 {isOpen && (
                   <div style={{ padding: '0 1.5rem 1.25rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem' }}>
-                    <StagePanel
-                      stageId={stage.id}
-                      projectId={project.id}
-                      stageNumber={stage.stage_number}
-                      initialNotes={stage.notes}
-                      attachments={stageAttachments}
-                      project={project as any}
-                      allStages={stages}
-                      currentUserRole={currentUserRole}
-                      canEditProp={canEdit}
-                      onUpdated={() => router.refresh()}
-                    />
+                    {isPulseStage ? (
+                      <PulsePanel
+                        stageId={stage.id}
+                        stageNumber={stage.stage_number}
+                        projectId={project.id}
+                        contractValue={project.contract_value}
+                        stageBillingPct={stage.billing_pct}
+                        pulses={stagePulses}
+                        currentUserRole={currentUserRole}
+                        canEditProp={canEdit}
+                        onUpdated={() => router.refresh()}
+                      />
+                    ) : (
+                      <StagePanel
+                        stageId={stage.id}
+                        projectId={project.id}
+                        stageNumber={stage.stage_number}
+                        initialNotes={stage.notes}
+                        attachments={stageAttachments}
+                        project={project as any}
+                        allStages={stages}
+                        currentUserRole={currentUserRole}
+                        canEditProp={canEdit}
+                        onUpdated={() => router.refresh()}
+                      />
+                    )}
                   </div>
                 )}
               </div>

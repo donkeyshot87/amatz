@@ -10,7 +10,15 @@ interface Props {
   onCancel: () => void
 }
 
-const ADDITION_STAGE_NAMES = ['הסכם', 'שרטוטים', 'ייצור', 'התקנה', 'מסירה']
+const ADDITION_STAGES = [
+  { number: 1, name: 'הסכם' },
+  { number: 2, name: 'שרטוטים' },
+  { number: 3, name: 'משקוף עיוור' },
+  { number: 4, name: 'ייצור' },
+  { number: 5, name: 'ייצור מוגמר' },
+  { number: 6, name: 'התקנה' },
+  { number: 7, name: 'מסירה' },
+]
 
 export function AdditionForm({ projectId, currentUserId, onCreated, onCancel }: Props) {
   const [name, setName] = useState('')
@@ -40,10 +48,10 @@ export function AdditionForm({ projectId, currentUserId, onCreated, onCancel }: 
     if (insertErr || !addition) { setError('שגיאה בשמירה'); setSaving(false); return }
 
     await supabase.from('addition_stages').insert(
-      ADDITION_STAGE_NAMES.map((stageName, i) => ({
+      ADDITION_STAGES.map(s => ({
         addition_id: addition.id,
-        stage_number: i + 1,
-        stage_name: stageName,
+        stage_number: s.number,
+        stage_name: s.name,
         billing_pct: 0,
       }))
     )

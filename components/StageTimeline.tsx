@@ -6,7 +6,7 @@ import { STAGE_STATUS_LABELS, formatDate } from '@/lib/formatters'
 import { StageUpdateButton } from './StageUpdateButton'
 import { StagePanel } from './StagePanel'
 import { PulsePanel } from './PulsePanel'
-import { canViewStage } from '@/lib/permissions'
+import { canViewStage, can, FINANCE_ROLES } from '@/lib/permissions'
 
 const STAGE_OWNERS: Record<number, string> = {
   1: 'איציק',
@@ -42,18 +42,16 @@ export function StageTimeline({ stages, pulses, attachments, project, currentUse
   const sorted = [...stages].sort((a, b) => a.stage_number - b.stage_number)
 
   function toggleStage(stageNumber: number) {
-    if (!canViewStage(currentUserRole, stageNumber)) return
     setOpenStage(prev => prev === stageNumber ? null : stageNumber)
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
       {sorted.map(stage => {
-        const canView = canViewStage(currentUserRole, stage.stage_number)
         const isOpen = openStage === stage.stage_number
         const stageAttachments = attachments.filter(a => a.stage_id === stage.id)
         const stagePulses = pulses.filter(p => p.stage_id === stage.id)
-        const isPulseStage = [3, 6].includes(stage.stage_number)
+        const isPulseStage = [3, 5, 6].includes(stage.stage_number)
         const config = STATUS_CONFIG[stage.status] ?? STATUS_CONFIG.pending
         const isCompleted = stage.status === 'completed'
 
@@ -70,11 +68,11 @@ export function StageTimeline({ stages, pulses, attachments, project, currentUse
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.85rem',
-                cursor: canView ? 'pointer' : 'default',
+                cursor: 'pointer',
                 transition: 'background 0.15s',
               }}
               onClick={() => toggleStage(stage.stage_number)}
-              onMouseEnter={e => canView && ((e.currentTarget as HTMLElement).style.background = 'var(--bg-hover)')}
+              onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'var(--bg-hover)')}
               onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
             >
               {/* Stage number circle */}
@@ -133,11 +131,9 @@ export function StageTimeline({ stages, pulses, attachments, project, currentUse
               </div>
 
               {/* Expand chevron */}
-              {canView && (
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem', flexShrink: 0, transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'none' }}>
-                  ▼
-                </span>
-              )}
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem', flexShrink: 0, transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'none' }}>
+                ▼
+              </span>
             </div>
 
             {/* Expanded panel */}
@@ -150,6 +146,7 @@ export function StageTimeline({ stages, pulses, attachments, project, currentUse
                       stageNumber={stage.stage_number}
                       projectId={project.id}
                       contractValue={project.contract_value}
+                      stageBillingPct={stage.billing_pct}
                       pulses={stagePulses}
                       currentUserRole={currentUserRole}
                       canEditProp={canEditProp}

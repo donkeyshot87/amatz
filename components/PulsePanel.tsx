@@ -14,10 +14,12 @@ const STATUS_OPTIONS = [
 ]
 
 interface Props {
-  stageId: string
+  stageId: string | null
+  additionStageId?: string
   stageNumber: number
   projectId: string
   contractValue: number | null
+  stageBillingPct: number
   pulses: StagePulse[]
   currentUserRole: UserRole
   canEditProp: boolean
@@ -31,15 +33,18 @@ const STAGE6_CATEGORIES = [
   { key: 'curtain',   label: 'קירות מסך' },
 ] as const
 
-export function PulsePanel({ stageId, stageNumber, projectId, contractValue, pulses, currentUserRole, canEditProp, onUpdated }: Props) {
+export function PulsePanel({ stageId, additionStageId, stageNumber, projectId, contractValue, stageBillingPct, pulses, currentUserRole, canEditProp, onUpdated }: Props) {
   const isAdmin = can(currentUserRole, FINANCE_ROLES)
   const [loading, setLoading] = useState<string | null>(null)
+  // Stage total = contract × stageBillingPct%; pulse billing = pulse% of that stage total
+  const stageAmount = contractValue != null ? contractValue * stageBillingPct / 100 : null
 
   async function addPulse() {
     const supabase = createClient()
     const nextNum = (pulses.length > 0 ? Math.max(...pulses.map(p => p.pulse_number)) : 0) + 1
     await supabase.from('stage_pulses').insert({
-      stage_id: stageId,
+      stage_id: additionStageId ? null : stageId,
+      addition_stage_id: additionStageId ?? null,
       project_id: projectId,
       pulse_number: nextNum,
       name: `פעימה ${nextNum}`,
@@ -49,7 +54,8 @@ export function PulsePanel({ stageId, stageNumber, projectId, contractValue, pul
     onUpdated()
   }
 
-  async function deletePulse(pulseId: string) {
+  async function deletePulse(pulseId: string, pulseName: string) {
+    if (!window.confirm(`למחוק את "${pulseName}"?`)) return
     const supabase = createClient()
     await supabase.from('stage_pulses').delete().eq('id', pulseId)
     onUpdated()
@@ -60,8 +66,8 @@ export function PulsePanel({ stageId, stageNumber, projectId, contractValue, pul
     const supabase = createClient()
     await supabase.from('stage_pulses').update({ status: newStatus }).eq('id', pulse.id)
 
-    if (newStatus === 'in_progress' && pulse.billing_pct > 0 && contractValue) {
-      const amount = contractValue * pulse.billing_pct / 100
+    if (newStatus === 'in_progress' && pulse.billing_pct > 0 && stageAmount) {
+      const amount = stageAmount * pulse.billing_pct / 100
       await supabase.from('billing_alerts').insert({
         project_id: projectId,
         stage_id: stageId,
@@ -107,7 +113,7 @@ export function PulsePanel({ stageId, stageNumber, projectId, contractValue, pul
             {isAdmin && canEditProp ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <input
-                  type="number"
+                  type="text" inputMode="numeric" pattern="[0-9]*"
                   min={0}
                   max={100}
                   defaultValue={pulse.billing_pct}
@@ -135,9 +141,9 @@ export function PulsePanel({ stageId, stageNumber, projectId, contractValue, pul
               <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{STAGE_STATUS_LABELS[pulse.status]}</span>
             )}
 
-            {isAdmin && canEditProp && pulse.status === 'pending' && (
+            {isAdmin && canEditProp && (
               <button
-                onClick={() => deletePulse(pulse.id)}
+                onClick={() => deletePulse(pulse.id, pulse.name ?? `פעימה ${pulse.pulse_number}`)}
                 style={{ fontSize: '0.75rem', color: 'var(--status-issues)', background: 'none', border: 'none', cursor: 'pointer', marginRight: 'auto' }}
               >
                 מחק
@@ -145,17 +151,30 @@ export function PulsePanel({ stageId, stageNumber, projectId, contractValue, pul
             )}
           </div>
 
-          {stageNumber === 6 && STAGE6_CATEGORIES.map(cat => {
+          {[5, 6].includes(stageNumber) && STAGE6_CATEGORIES.map(cat => {
             const plannedKey = `qty_${cat.key}_planned` as keyof StagePulse
             const actualKey  = `qty_${cat.key}_actual`  as keyof StagePulse
             const planned = pulse[plannedKey] as number | null
             const actual  = pulse[actualKey]  as number
             return (
-              <div key={cat.key} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '6px', fontSize: '0.82rem' }}>
+              <div key={cat.key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '6px', fontSize: '0.82rem' }}>
                 <span style={{ minWidth: '90px', color: 'var(--text-secondary)' }}>{cat.label}</span>
+                {canEditProp ? (
+                  <input
+                    type="text" inputMode="numeric" pattern="[0-9]*"
+                    min={0}
+                    defaultValue={actual}
+                    onBlur={e => updateQty(pulse.id, actualKey as string, parseInt(e.target.value))}
+                    className="input-field"
+                    style={{ width: '70px' }}
+                  />
+                ) : (
+                  <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{actual}</span>
+                )}
+                <span style={{ color: 'var(--text-muted)' }}>הותקנו מתוך</span>
                 {isAdmin && canEditProp ? (
                   <input
-                    type="number"
+                    type="text" inputMode="numeric" pattern="[0-9]*"
                     min={0}
                     defaultValue={planned ?? ''}
                     placeholder="סה״כ"
@@ -166,20 +185,7 @@ export function PulsePanel({ stageId, stageNumber, projectId, contractValue, pul
                 ) : (
                   <span style={{ color: 'var(--text-muted)' }}>{planned ?? '—'}</span>
                 )}
-                <span style={{ color: 'var(--text-muted)' }}>סה״כ |</span>
-                {canEditProp ? (
-                  <input
-                    type="number"
-                    min={0}
-                    defaultValue={actual}
-                    onBlur={e => updateQty(pulse.id, actualKey as string, parseInt(e.target.value))}
-                    className="input-field"
-                    style={{ width: '70px' }}
-                  />
-                ) : (
-                  <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{actual}</span>
-                )}
-                <span style={{ color: 'var(--text-muted)' }}>הותקנו</span>
+                <span style={{ color: 'var(--text-muted)' }}>סה״כ</span>
                 {planned != null && planned > 0 && (
                   <span style={{ fontSize: '0.72rem', color: actual >= planned ? 'var(--status-done)' : 'var(--text-muted)' }}>
                     ({Math.round((actual / planned) * 100)}%)
@@ -193,11 +199,24 @@ export function PulsePanel({ stageId, stageNumber, projectId, contractValue, pul
             const planned = pulse.qty_blind_frame_planned
             const actual  = pulse.qty_blind_frame_actual
             return (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.82rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
                 <span style={{ minWidth: '90px', color: 'var(--text-secondary)' }}>משקוף עיוור</span>
+                {canEditProp ? (
+                  <input
+                    type="text" inputMode="numeric" pattern="[0-9]*"
+                    min={0}
+                    defaultValue={actual}
+                    onBlur={e => updateQty(pulse.id, 'qty_blind_frame_actual', parseInt(e.target.value))}
+                    className="input-field"
+                    style={{ width: '70px' }}
+                  />
+                ) : (
+                  <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{actual}</span>
+                )}
+                <span style={{ color: 'var(--text-muted)' }}>הותקנו מתוך</span>
                 {isAdmin && canEditProp ? (
                   <input
-                    type="number"
+                    type="text" inputMode="numeric" pattern="[0-9]*"
                     min={0}
                     defaultValue={planned ?? ''}
                     placeholder="סה״כ"
@@ -208,20 +227,7 @@ export function PulsePanel({ stageId, stageNumber, projectId, contractValue, pul
                 ) : (
                   <span style={{ color: 'var(--text-muted)' }}>{planned ?? '—'}</span>
                 )}
-                <span style={{ color: 'var(--text-muted)' }}>סה״כ |</span>
-                {canEditProp ? (
-                  <input
-                    type="number"
-                    min={0}
-                    defaultValue={actual}
-                    onBlur={e => updateQty(pulse.id, 'qty_blind_frame_actual', parseInt(e.target.value))}
-                    className="input-field"
-                    style={{ width: '70px' }}
-                  />
-                ) : (
-                  <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{actual}</span>
-                )}
-                <span style={{ color: 'var(--text-muted)' }}>הותקנו</span>
+                <span style={{ color: 'var(--text-muted)' }}>סה״כ</span>
                 {planned != null && planned > 0 && (
                   <span style={{ fontSize: '0.72rem', color: actual >= planned ? 'var(--status-done)' : 'var(--text-muted)' }}>
                     ({Math.round((actual / planned) * 100)}%)

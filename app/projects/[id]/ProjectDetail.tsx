@@ -30,6 +30,7 @@ interface Props {
   pulses: StagePulse[]
   additions: Addition[]
   additionStages: AdditionStage[]
+  additionPulses: StagePulse[]
   tailIssues: TailIssue[]
   attachments: Attachment[]
   currentUserId: string
@@ -51,7 +52,7 @@ const PROJECT_STATUS_BADGE: Record<string, string> = {
   closed: 'badge badge-closed',
 }
 
-export function ProjectDetail({ project, stages, pulses, additions, additionStages, tailIssues, attachments, currentUserId, currentUserRole, canEditProp, ownerNames, history }: Props) {
+export function ProjectDetail({ project, stages, pulses, additions, additionStages, additionPulses, tailIssues, attachments, currentUserId, currentUserRole, canEditProp, ownerNames, history }: Props) {
   const router = useRouter()
   const [toast, setToast] = useState<string | null>(null)
   const [editingName, setEditingName] = useState(false)
@@ -77,6 +78,7 @@ export function ProjectDetail({ project, stages, pulses, additions, additionStag
   }
 
   const openTailCount = tailIssues.filter(t => t.status !== 'resolved').length
+  const [activeTab, setActiveTab] = useState<'stages' | 'additions' | 'gamars'>('stages')
 
   return (
     <div style={{ maxWidth: '860px', margin: '0 auto', padding: '2rem 1.5rem' }}>
@@ -215,9 +217,56 @@ export function ProjectDetail({ project, stages, pulses, additions, additionStag
         )}
       </div>
 
-      {/* Stage timeline */}
-      <SectionTitle>שלבי הפרויקט</SectionTitle>
-      <div style={{ marginBottom: '1.5rem' }}>
+      {/* Tabs */}
+      <div style={{ display: 'flex', borderBottom: '2px solid var(--border-subtle)', marginBottom: '1.5rem' }}>
+        {([
+          { key: 'stages',   label: 'שלבי הפרויקט', count: 0 },
+          { key: 'additions', label: 'תוספות',        count: additions.length },
+          { key: 'gamars',   label: 'גמרים',          count: openTailCount },
+        ] as const).map(tab => {
+          const active = activeTab === tab.key
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              style={{
+                padding: '0.6rem 1.25rem',
+                fontSize: '0.875rem',
+                fontWeight: active ? 700 : 500,
+                color: active ? 'var(--brand)' : 'var(--text-muted)',
+                background: 'none',
+                border: 'none',
+                borderBottom: active ? '2px solid var(--brand)' : '2px solid transparent',
+                marginBottom: '-2px',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-body)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'color 0.15s',
+              }}
+            >
+              {tab.label}
+              {tab.count > 0 && (
+                <span style={{
+                  background: active ? 'var(--brand)' : 'var(--border-mid)',
+                  color: active ? 'white' : 'var(--text-secondary)',
+                  fontSize: '0.68rem',
+                  fontWeight: 700,
+                  borderRadius: '999px',
+                  padding: '1px 7px',
+                  lineHeight: '1.4',
+                }}>
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Tab: שלבי הפרויקט */}
+      {activeTab === 'stages' && (
         <StageTimeline
           stages={stages}
           pulses={pulses}
@@ -229,91 +278,96 @@ export function ProjectDetail({ project, stages, pulses, additions, additionStag
           onStageUpdated={handleStageUpdated}
           onRefresh={() => router.refresh()}
         />
-      </div>
+      )}
 
-      {/* Additions */}
-      <SectionTitle>תוספות</SectionTitle>
-      <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        {additions.length === 0 && !showAdditionForm && (
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>אין תוספות</p>
-        )}
-        {additions.map(addition => (
-          <AdditionCard
-            key={addition.id}
-            addition={addition}
-            stages={additionStages.filter(s => s.addition_id === addition.id)}
-            currentUserRole={currentUserRole}
-            currentUserId={currentUserId}
-            canEditProp={canEditProp}
-            onUpdated={() => router.refresh()}
-          />
-        ))}
-        {can(currentUserRole, FINANCE_ROLES) && (
-          showAdditionForm ? (
-            <AdditionForm
-              projectId={project.id}
+      {/* Tab: תוספות */}
+      {activeTab === 'additions' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          {additions.length === 0 && !showAdditionForm && (
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>אין תוספות</p>
+          )}
+          {additions.map(addition => (
+            <AdditionCard
+              key={addition.id}
+              addition={addition}
+              stages={additionStages.filter(s => s.addition_id === addition.id)}
+              pulses={additionPulses}
+              attachments={attachments}
+              currentUserRole={currentUserRole}
               currentUserId={currentUserId}
-              onCreated={() => { setShowAdditionForm(false); router.refresh() }}
-              onCancel={() => setShowAdditionForm(false)}
+              canEditProp={canEditProp}
+              onUpdated={() => router.refresh()}
             />
-          ) : (
-            <button className="btn-secondary" onClick={() => setShowAdditionForm(true)} style={{ alignSelf: 'flex-start' }}>
-              + הוסף תוספת
-            </button>
-          )
-        )}
-      </div>
-
-      {/* Tail issues / גמרים */}
-      <SectionTitle>גמרים</SectionTitle>
-      <div className="card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
-        <TailIssueList
-          issues={tailIssues}
-          attachments={attachments}
-          ownerNames={ownerNames}
-          canEditProp={canEditProp}
-          onUpdated={() => router.refresh()}
-        />
-        <div style={{ marginTop: tailIssues.length > 0 ? '1rem' : 0, paddingTop: tailIssues.length > 0 ? '1rem' : 0, borderTop: tailIssues.length > 0 ? '1px solid var(--border-subtle)' : 'none' }}>
-          {canEditProp && <TailIssueForm projectId={project.id} onCreated={() => router.refresh()} />}
+          ))}
+          {can(currentUserRole, FINANCE_ROLES) && (
+            showAdditionForm ? (
+              <AdditionForm
+                projectId={project.id}
+                currentUserId={currentUserId}
+                onCreated={() => { setShowAdditionForm(false); router.refresh() }}
+                onCancel={() => setShowAdditionForm(false)}
+              />
+            ) : (
+              <button className="btn-secondary" onClick={() => setShowAdditionForm(true)} style={{ alignSelf: 'flex-start' }}>
+                + הוסף תוספת
+              </button>
+            )
+          )}
         </div>
-      </div>
+      )}
 
-      {/* History */}
-      {history.length > 0 && can(currentUserRole, FINANCE_ROLES) && (
+      {/* Tab: גמרים */}
+      {activeTab === 'gamars' && (
         <>
-          <SectionTitle>היסטוריית שינויים</SectionTitle>
-          <div className="card" style={{ padding: '0.5rem 1.25rem', marginBottom: '1.5rem' }}>
-            {history.map((entry, i) => (
-              <div
-                key={entry.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '0.7rem 0',
-                  borderBottom: i < history.length - 1 ? '1px solid var(--border-subtle)' : 'none',
-                  gap: '1rem',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', fontSize: '0.82rem' }}>
-                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                    שלב {entry.project_stages?.stage_number}: {entry.project_stages?.stage_name}
-                  </span>
-                  <span style={{ color: 'var(--text-muted)' }}>←</span>
-                  <span style={{ color: 'var(--text-secondary)' }}>{STAGE_STATUS_LABELS[entry.old_status ?? ''] ?? entry.old_status}</span>
-                  <span style={{ color: 'var(--text-muted)' }}>→</span>
-                  <span style={{ color: 'var(--brand)', fontWeight: 600 }}>{STAGE_STATUS_LABELS[entry.new_status] ?? entry.new_status}</span>
-                </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', flexShrink: 0, display: 'flex', gap: '6px' }}>
-                  <span>{ownerNames[entry.changed_by ?? ''] ?? '—'}</span>
-                  <span>·</span>
-                  <span>{formatDate(entry.changed_at)}</span>
-                </div>
-              </div>
-            ))}
+          <div className="card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
+            <TailIssueList
+              issues={tailIssues}
+              attachments={attachments}
+              ownerNames={ownerNames}
+              canEditProp={canEditProp}
+              onUpdated={() => router.refresh()}
+            />
+            <div style={{ marginTop: tailIssues.length > 0 ? '1rem' : 0, paddingTop: tailIssues.length > 0 ? '1rem' : 0, borderTop: tailIssues.length > 0 ? '1px solid var(--border-subtle)' : 'none' }}>
+              {canEditProp && <TailIssueForm projectId={project.id} onCreated={() => router.refresh()} />}
+            </div>
           </div>
+
+          {history.length > 0 && can(currentUserRole, FINANCE_ROLES) && (
+            <>
+              <SectionTitle>היסטוריית שינויים</SectionTitle>
+              <div className="card" style={{ padding: '0.5rem 1.25rem', marginBottom: '1.5rem' }}>
+                {history.map((entry, i) => (
+                  <div
+                    key={entry.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '0.7rem 0',
+                      borderBottom: i < history.length - 1 ? '1px solid var(--border-subtle)' : 'none',
+                      gap: '1rem',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', fontSize: '0.82rem' }}>
+                      <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                        שלב {entry.project_stages?.stage_number}: {entry.project_stages?.stage_name}
+                      </span>
+                      <span style={{ color: 'var(--text-muted)' }}>←</span>
+                      <span style={{ color: 'var(--text-secondary)' }}>{STAGE_STATUS_LABELS[entry.old_status ?? ''] ?? entry.old_status}</span>
+                      <span style={{ color: 'var(--text-muted)' }}>→</span>
+                      <span style={{ color: 'var(--brand)', fontWeight: 600 }}>{STAGE_STATUS_LABELS[entry.new_status] ?? entry.new_status}</span>
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', flexShrink: 0, display: 'flex', gap: '6px' }}>
+                      <span>{ownerNames[entry.changed_by ?? ''] ?? '—'}</span>
+                      <span>·</span>
+                      <span>{formatDate(entry.changed_at)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </>
       )}
 

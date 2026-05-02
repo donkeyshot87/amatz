@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, usePathname } from 'next/navigation'
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 
 const STATUS_OPTIONS = [
   { value: 'pending',     label: 'ממתין' },
@@ -26,14 +26,18 @@ interface Props {
 export function FilterBar({ selected, searchQuery, sortValue }: Props) {
   const router = useRouter()
   const pathname = usePathname()
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const buildUrl = useCallback((newSelected: string[], newQ: string, newSort: string) => {
     const params = new URLSearchParams()
-    newSelected.forEach(s => params.append('s', s))
+    if (newSelected.length === 0) {
+      params.set('s', '__none__')
+    } else {
+      newSelected.forEach(s => params.append('s', s))
+    }
     if (newQ) params.set('q', newQ)
     if (newSort) params.set('sort', newSort)
-    const qs = params.toString()
-    return qs ? `${pathname}?${qs}` : pathname
+    return `${pathname}?${params.toString()}`
   }, [pathname])
 
   function toggleStatus(value: string) {
@@ -48,7 +52,10 @@ export function FilterBar({ selected, searchQuery, sortValue }: Props) {
   }
 
   function handleSearch(q: string) {
-    router.push(buildUrl(selected, q, sortValue))
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      router.push(buildUrl(selected, q, sortValue))
+    }, 400)
   }
 
   function handleSort(sort: string) {

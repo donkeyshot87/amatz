@@ -197,6 +197,14 @@ body {
 .status-dot-done      { background: var(--status-done); }
 .status-dot-blocked   { background: var(--status-blocked); }
 
+/* Hide number input spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button,
+.input-field::-webkit-inner-spin-button,
+.input-field::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"],
+.input-field[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+
 /* Form inputs */
 .input-field {
   background: var(--bg-surface);

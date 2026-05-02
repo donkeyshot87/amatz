@@ -55,7 +55,8 @@ export interface ProjectStage {
 
 export interface StagePulse {
   id: string
-  stage_id: string
+  stage_id: string | null
+  addition_stage_id: string | null
   project_id: string
   pulse_number: number
   name: string | null
@@ -144,6 +145,7 @@ export interface Attachment {
   id: string
   project_id: string
   stage_id: string | null
+  addition_stage_id: string | null
   tail_issue_id: string | null
   file_name: string
   file_type: FileType
