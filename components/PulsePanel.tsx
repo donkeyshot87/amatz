@@ -90,8 +90,16 @@ export function PulsePanel({ stageId, additionStageId, stageNumber, projectId, c
     onUpdated()
   }
 
+  const pctSum = pulses.reduce((sum, p) => sum + p.billing_pct, 0)
+  const showPctWarning = pulses.length > 0 && pctSum !== 100
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      {showPctWarning && (
+        <div style={{ background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 'var(--radius-md)', padding: '0.5rem 0.75rem', fontSize: '0.78rem', color: '#92400e' }}>
+          ⚠️ אחוזי הפעימות מסתכמים ל-{pctSum}% (צפוי 100%)
+        </div>
+      )}
       {pulses.length === 0 && (
         <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>אין פעימות עדיין.</p>
       )}

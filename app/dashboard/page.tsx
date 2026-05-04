@@ -50,6 +50,7 @@ export default async function DashboardPage({ searchParams }: Props) {
   const { data: projects } = await supabase
     .from('projects')
     .select('*')
+    .is('deleted_at', null)
 
   const { data: openTails } = await supabase
     .from('tail_issues')

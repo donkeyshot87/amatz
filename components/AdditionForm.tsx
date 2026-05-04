@@ -11,11 +11,11 @@ interface Props {
 }
 
 const ADDITION_STAGES = [
-  { number: 1, name: 'הסכם' },
+  { number: 1, name: 'חתימה על הסכם' },
   { number: 2, name: 'שרטוטים' },
   { number: 3, name: 'משקוף עיוור' },
-  { number: 4, name: 'ייצור' },
-  { number: 5, name: 'ייצור מוגמר' },
+  { number: 4, name: 'הזמנת חומר' },
+  { number: 5, name: 'ייצור' },
   { number: 6, name: 'התקנה' },
   { number: 7, name: 'מסירה' },
 ]

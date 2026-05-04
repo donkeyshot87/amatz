@@ -11,7 +11,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
   const [{ data: project }, { data: stages }, { data: profile }, { data: tailIssues }, { data: attachments }, { data: allProfiles }, { data: history }, { data: pulses }, { data: additions }] =
     await Promise.all([
-      supabase.from('projects').select('*').eq('id', id).single(),
+      supabase.from('projects').select('*').eq('id', id).is('deleted_at', null).single(),
       supabase.from('project_stages').select('*').eq('project_id', id).order('stage_number'),
       supabase.from('user_profiles').select('*').eq('id', user.id).single(),
       supabase.from('tail_issues').select('*').eq('project_id', id).order('created_at', { ascending: false }),

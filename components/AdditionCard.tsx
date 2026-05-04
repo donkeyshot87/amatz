@@ -16,7 +16,7 @@ const STATUS_BADGE: Record<string, string> = {
   blocked:     'badge badge-blocked',
 }
 
-// Pulse stages mirror project: 3=משקוף עיוור, 5=ייצור מוגמר, 6=התקנה
+// Pulse stages mirror project: 3=משקוף עיוור, 5=ייצור, 6=התקנה
 const PULSE_STAGE_NUMBERS = [3, 5, 6]
 
 interface Props {

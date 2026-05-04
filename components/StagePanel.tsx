@@ -141,6 +141,10 @@ function ContractEditor({ projectId, initialContractValue, stages, canEdit, onUp
     onUpdated()
   }
 
+  const editableStages = stages.filter(s => ![3, 6].includes(s.stage_number))
+  const pctSum = editableStages.reduce((sum, s) => sum + parseInt(stagePcts[s.id] ?? '0'), 0)
+  const showPctWarning = editableStages.length > 0 && pctSum !== 100
+
   return (
     <div style={{ background: 'var(--bg-raised)', borderRadius: 'var(--radius-md)', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -148,6 +152,11 @@ function ContractEditor({ projectId, initialContractValue, stages, canEdit, onUp
         {saving && <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>שומר...</span>}
         {saved && !saving && <span style={{ fontSize: '0.7rem', color: 'var(--status-done)' }}>✓ נשמר</span>}
       </div>
+      {showPctWarning && (
+        <div style={{ background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 'var(--radius-md)', padding: '0.5rem 0.75rem', fontSize: '0.78rem', color: '#92400e' }}>
+          ⚠️ אחוזי הגבייה מסתכמים ל-{pctSum}% (צפוי 100%)
+        </div>
+      )}
       <div>
         <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>ערך חוזה (₪)</label>
         {canEdit ? (

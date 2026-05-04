@@ -17,7 +17,7 @@ export function DeleteProjectButton({ projectId, projectName }: Props) {
   async function handleDelete() {
     setDeleting(true)
     const supabase = createClient()
-    await supabase.from('projects').delete().eq('id', projectId)
+    await supabase.from('projects').update({ deleted_at: new Date().toISOString() }).eq('id', projectId)
     router.push('/dashboard')
   }
 
