@@ -80,7 +80,7 @@ export async function NavBar() {
         }}>
           {/* Logo */}
           <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0, padding: 0, textDecoration: 'none' }}>
-            <img src="/logo-icon.png" alt="לוגו" style={{ height: '60px', width: '60px', objectFit: 'contain', display: 'block' }} />
+            <img src="/icon.svg" alt="לוגו" style={{ height: '40px', width: '40px', objectFit: 'contain', display: 'block', borderRadius: '8px' }} />
             <span style={{
               fontFamily: 'var(--font-display)',
               fontWeight: 700,
